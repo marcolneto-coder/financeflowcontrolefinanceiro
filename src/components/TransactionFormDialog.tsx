@@ -1,8 +1,13 @@
 import { useState, useMemo } from "react";
 import { useFinance } from "@/lib/finance-context";
-import { type Transaction, type TransactionType, formatCurrency } from "@/lib/finance-store";
+import { type Transaction, type TransactionType, formatCurrency, getNextMonth } from "@/lib/finance-store";
 import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const MONTHS = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
 
 interface Props {
   editTransaction: Transaction | null;
@@ -10,7 +15,7 @@ interface Props {
 }
 
 export function TransactionFormDialog({ editTransaction, onClose }: Props) {
-  const { state, addTransaction, updateTransaction, addCategory } = useFinance();
+  const { state, addTransaction, updateTransactionAndFuture, addCategory } = useFinance();
   const isEdit = !!editTransaction;
 
   const [type, setType] = useState<TransactionType>(editTransaction?.type || "expense");
@@ -22,6 +27,14 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
   const [isInstallment, setIsInstallment] = useState(editTransaction?.isInstallment || false);
   const [totalInstallments, setTotalInstallments] = useState(editTransaction?.totalInstallments?.toString() || "2");
   const [creditCardId, setCreditCardId] = useState(editTransaction?.creditCardId || "");
+  const [store, setStore] = useState(editTransaction?.store || "");
+  const [purchaseDate, setPurchaseDate] = useState(editTransaction?.purchaseDate || new Date().toISOString().split("T")[0]);
+  
+  // Billing month: default to next month
+  const nextMonth = getNextMonth();
+  const defaultBillingMonth = editTransaction?.billingMonth || `${nextMonth.year}-${String(nextMonth.month + 1).padStart(2, "0")}`;
+  const [billingMonth, setBillingMonth] = useState(defaultBillingMonth);
+  
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
 
@@ -41,7 +54,6 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
       addCategory(newCategoryName.trim(), type);
       setShowNewCategory(false);
       setNewCategoryName("");
-      // Set the new category after creation
       setTimeout(() => {
         const newCat = state.categories.find((c) => c.name === newCategoryName.trim() && c.type === type);
         if (newCat) setCategoryId(newCat.id);
@@ -49,11 +61,30 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
     }
   };
 
+  // Parse billing month to get starting month info for installment preview
+  const billingMonthDate = new Date(billingMonth + "-15T12:00:00");
+  const installmentPreview = useMemo(() => {
+    if (!isInstallment || parsedAmount <= 0) return [];
+    const items = [];
+    for (let i = 0; i < parsedInstallments; i++) {
+      const d = new Date(billingMonthDate);
+      d.setMonth(d.getMonth() + i);
+      items.push({
+        label: `${MONTHS[d.getMonth()]}/${d.getFullYear()}`,
+        value: installmentValue,
+        num: i + 1,
+      });
+    }
+    return items;
+  }, [isInstallment, parsedAmount, parsedInstallments, billingMonth, installmentValue]);
+
   const handleSubmit = () => {
     if (!description.trim() || parsedAmount <= 0) return;
 
+    const hasCreditCard = type === "expense" && creditCardId;
+
     if (isEdit && editTransaction) {
-      updateTransaction({
+      updateTransactionAndFuture({
         ...editTransaction,
         description: description.trim(),
         amount: parsedAmount,
@@ -62,6 +93,9 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         date,
         isFixed,
         creditCardId: creditCardId || undefined,
+        store: store || undefined,
+        purchaseDate: hasCreditCard ? purchaseDate : undefined,
+        billingMonth: hasCreditCard ? billingMonth : undefined,
       });
     } else {
       addTransaction({
@@ -69,19 +103,24 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         amount: parsedAmount,
         type,
         categoryId,
-        date,
+        date: hasCreditCard ? billingMonth + "-" + purchaseDate.split("-")[2] : date,
         isFixed,
         isInstallment: type === "expense" && isInstallment,
         totalInstallments: type === "expense" && isInstallment ? parsedInstallments : 1,
         creditCardId: type === "expense" && creditCardId ? creditCardId : undefined,
+        store: store || undefined,
+        purchaseDate: hasCreditCard ? purchaseDate : undefined,
+        billingMonth: hasCreditCard ? billingMonth : undefined,
       });
     }
     onClose();
   };
 
+  const showCardFields = type === "expense" && creditCardId;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="glass-card w-full max-w-lg p-6 m-4 max-h-[90vh] overflow-y-auto border border-border bg-card rounded-2xl shadow-2xl">
+      <div className="glass-card w-full max-w-lg p-4 md:p-6 m-4 max-h-[90vh] overflow-y-auto border border-border bg-card rounded-2xl shadow-2xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">
             {isEdit ? "Editar Transação" : "Nova Transação"}
@@ -109,77 +148,89 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         )}
 
         <div className="space-y-4">
-          {/* Description */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+            <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: Aluguel, Salário..."
-              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
 
-          {/* Amount */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
               {isInstallment && !isEdit ? "Valor Total" : "Valor"}
             </label>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0,00"
-              step="0.01"
-              min="0"
-              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring tabular-nums"
-            />
+            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
+              placeholder="0,00" step="0.01" min="0"
+              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring tabular-nums" />
           </div>
 
-          {/* Date */}
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Data</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
+          {/* Credit Card selection (before date so billing month shows) */}
+          {type === "expense" && state.creditCards.length > 0 && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Cartão de Crédito (opcional)</label>
+              <select value={creditCardId} onChange={(e) => setCreditCardId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                <option value="">Nenhum</option>
+                {state.creditCards.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name} •••• {c.lastDigits}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Card-specific fields */}
+          {showCardFields && (
+            <>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Loja / Estabelecimento</label>
+                <input type="text" value={store} onChange={(e) => setStore(e.target.value)}
+                  placeholder="Ex: Amazon, iFood..."
+                  className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Data da compra</label>
+                <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Fatura de lançamento (mês)</label>
+                <input type="month" value={billingMonth} onChange={(e) => setBillingMonth(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                <p className="text-[10px] text-muted-foreground mt-1">Define em qual mês a despesa será lançada</p>
+              </div>
+            </>
+          )}
+
+          {/* Date (only for non-card transactions) */}
+          {!showCardFields && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Data</label>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+          )}
 
           {/* Category */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Categoria</label>
             <div className="flex gap-2">
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="flex-1 px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
+              <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}
+                className="flex-1 px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
                 <option value="">Selecionar...</option>
                 {filteredCategories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              <button
-                onClick={() => setShowNewCategory(!showNewCategory)}
-                className="p-2.5 rounded-lg bg-input hover:bg-accent transition-colors"
-                title="Nova categoria"
-              >
+              <button onClick={() => setShowNewCategory(!showNewCategory)} className="p-2.5 rounded-lg bg-input hover:bg-accent transition-colors" title="Nova categoria">
                 <Plus className="size-4" />
               </button>
             </div>
             {showNewCategory && (
               <div className="flex gap-2 mt-2">
-                <input
-                  type="text"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
+                <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="Nome da categoria"
                   className="flex-1 px-3 py-2 rounded-lg bg-input border-0 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
-                  onKeyDown={(e) => e.key === "Enter" && handleCreateCategory()}
-                />
+                  onKeyDown={(e) => e.key === "Enter" && handleCreateCategory()} />
                 <Button size="sm" onClick={handleCreateCategory}>Criar</Button>
               </div>
             )}
@@ -187,73 +238,43 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
 
           {/* Fixed */}
           <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isFixed}
-              onChange={(e) => setIsFixed(e.target.checked)}
-              className="size-4 rounded accent-primary"
-            />
+            <input type="checkbox" checked={isFixed} onChange={(e) => setIsFixed(e.target.checked)} className="size-4 rounded accent-primary" />
             <span className="text-sm">Despesa/Receita fixa (recorrente)</span>
           </label>
 
-          {/* Expense-only options */}
+          {/* Installment */}
           {type === "expense" && !isEdit && (
             <>
-              {/* Installment */}
               <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isInstallment}
-                  onChange={(e) => setIsInstallment(e.target.checked)}
-                  className="size-4 rounded accent-primary"
-                />
+                <input type="checkbox" checked={isInstallment} onChange={(e) => setIsInstallment(e.target.checked)} className="size-4 rounded accent-primary" />
                 <span className="text-sm">Parcelada</span>
               </label>
 
               {isInstallment && (
                 <div className="pl-7 space-y-3">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                      Número de parcelas
-                    </label>
-                    <input
-                      type="number"
-                      value={totalInstallments}
-                      onChange={(e) => setTotalInstallments(e.target.value)}
-                      min="2"
-                      max="48"
-                      className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Número de parcelas</label>
+                    <input type="number" value={totalInstallments} onChange={(e) => setTotalInstallments(e.target.value)} min="2" max="48"
+                      className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
                   {parsedAmount > 0 && (
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 space-y-2">
                       <p className="text-sm font-medium text-primary">
                         {parsedInstallments}x de {formatCurrency(installmentValue)}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Total: {formatCurrency(parsedAmount)} • Distribuído em {parsedInstallments} meses a partir de {new Date(date + "T12:00:00").toLocaleDateString("pt-BR")}
+                      <div className="max-h-32 overflow-y-auto space-y-1">
+                        {installmentPreview.map((p) => (
+                          <div key={p.num} className="flex justify-between text-xs text-muted-foreground">
+                            <span>Parcela {p.num} — {p.label}</span>
+                            <span className="tabular-nums">{formatCurrency(p.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground border-t border-border pt-1">
+                        Total: {formatCurrency(parsedAmount)}
                       </p>
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* Credit Card */}
-              {state.creditCards.length > 0 && (
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                    Cartão de Crédito (opcional)
-                  </label>
-                  <select
-                    value={creditCardId}
-                    onChange={(e) => setCreditCardId(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="">Nenhum</option>
-                    {state.creditCards.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name} •••• {c.lastDigits}</option>
-                    ))}
-                  </select>
                 </div>
               )}
             </>
@@ -261,9 +282,7 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         </div>
 
         <div className="flex gap-3 mt-6">
-          <Button variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
+          <Button variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
           <Button onClick={handleSubmit} className="flex-1" disabled={!description.trim() || parsedAmount <= 0}>
             {isEdit ? "Salvar" : "Criar"}
           </Button>
