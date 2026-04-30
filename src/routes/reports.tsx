@@ -106,7 +106,7 @@ function ReportsPage() {
                   borderRadius: "8px",
                   fontSize: "12px",
                 }}
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value: any) => formatCurrency(Number(value))}
               />
               <Bar dataKey="receitas" fill="var(--income)" radius={[4, 4, 0, 0]} />
               <Bar dataKey="despesas" fill="var(--expense)" radius={[4, 4, 0, 0]} />
@@ -136,7 +136,7 @@ function ReportsPage() {
                     borderRadius: "8px",
                     fontSize: "12px",
                   }}
-                  formatter={(value: number) => formatCurrency(value)}
+                  formatter={(value: any) => formatCurrency(Number(value))}
                 />
               </PieChart>
             </ResponsiveContainer>
