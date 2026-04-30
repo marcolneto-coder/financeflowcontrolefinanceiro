@@ -2,6 +2,8 @@ import { v4 as uuidv4 } from "uuid";
 
 export type TransactionType = "income" | "expense";
 
+export type CardBrand = "visa" | "mastercard" | "elo" | "amex" | "hipercard" | "other";
+
 export interface Category {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export interface CreditCard {
   closingDay: number;
   dueDay: number;
   color: string;
+  brand: CardBrand;
 }
 
 export interface Transaction {
@@ -31,6 +34,9 @@ export interface Transaction {
   currentInstallment: number;
   installmentGroupId?: string;
   creditCardId?: string;
+  store?: string;
+  purchaseDate?: string;
+  billingMonth?: string; // YYYY-MM — determines which month the expense lands
 }
 
 export interface FinanceState {
@@ -55,7 +61,7 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 const STORAGE_KEY = "alento-finance-data";
 
-function getDefaultState(): FinanceState {
+export function getDefaultState(): FinanceState {
   return {
     transactions: [],
     categories: DEFAULT_CATEGORIES,
@@ -78,6 +84,20 @@ export function saveState(state: FinanceState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+export function exportData(state: FinanceState): string {
+  return JSON.stringify(state, null, 2);
+}
+
+export function importData(json: string): FinanceState | null {
+  try {
+    const data = JSON.parse(json);
+    if (data && data.transactions && data.categories) {
+      return { ...getDefaultState(), ...data };
+    }
+  } catch {}
+  return null;
+}
+
 export function addTransaction(
   state: FinanceState,
   input: Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId">
@@ -85,9 +105,16 @@ export function addTransaction(
   if (input.isInstallment && input.totalInstallments > 1) {
     const groupId = uuidv4();
     const perInstallment = Math.round((input.amount / input.totalInstallments) * 100) / 100;
-    const baseDate = new Date(input.date + "T12:00:00");
+    
+    // Use billingMonth as starting point if provided, otherwise use date
+    let baseDate: Date;
+    if (input.billingMonth) {
+      baseDate = new Date(input.billingMonth + "-15T12:00:00");
+    } else {
+      baseDate = new Date(input.date + "T12:00:00");
+    }
+    
     const newTransactions: Transaction[] = [];
-
     for (let i = 0; i < input.totalInstallments; i++) {
       const d = new Date(baseDate);
       d.setMonth(d.getMonth() + i);
@@ -103,11 +130,17 @@ export function addTransaction(
     return { ...state, transactions: [...state.transactions, ...newTransactions] };
   }
 
+  // For non-installment with billingMonth, use billingMonth to set date month
+  let finalDate = input.date;
+  if (input.billingMonth && !input.isInstallment) {
+    finalDate = input.billingMonth + "-" + input.date.split("-")[2];
+  }
+
   return {
     ...state,
     transactions: [
       ...state.transactions,
-      { ...input, id: uuidv4(), currentInstallment: 1, installmentGroupId: undefined },
+      { ...input, id: uuidv4(), date: finalDate, currentInstallment: 1, installmentGroupId: undefined },
     ],
   };
 }
@@ -117,6 +150,40 @@ export function updateTransaction(state: FinanceState, updated: Transaction): Fi
     ...state,
     transactions: state.transactions.map((t) => (t.id === updated.id ? updated : t)),
   };
+}
+
+// Update this and all future installments/fixed transactions
+export function updateTransactionAndFuture(
+  state: FinanceState,
+  updated: Transaction
+): FinanceState {
+  const newTransactions = state.transactions.map((t) => {
+    if (t.id === updated.id) return updated;
+    
+    // Update future installments in same group
+    if (
+      updated.installmentGroupId &&
+      t.installmentGroupId === updated.installmentGroupId &&
+      t.currentInstallment > updated.currentInstallment
+    ) {
+      const monthDiff = t.currentInstallment - updated.currentInstallment;
+      const baseDate = new Date(updated.date + "T12:00:00");
+      baseDate.setMonth(baseDate.getMonth() + monthDiff);
+      return {
+        ...t,
+        description: updated.description,
+        amount: updated.amount,
+        categoryId: updated.categoryId,
+        creditCardId: updated.creditCardId,
+        store: updated.store,
+        date: baseDate.toISOString().split("T")[0],
+      };
+    }
+    
+    return t;
+  });
+  
+  return { ...state, transactions: newTransactions };
 }
 
 export function deleteTransaction(state: FinanceState, id: string): FinanceState {
@@ -184,4 +251,36 @@ export function getMonthSummary(transactions: Transaction[], year: number, month
 
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
+// Get next month as default
+export function getNextMonth(): { year: number; month: number } {
+  const now = new Date();
+  let m = now.getMonth() + 1;
+  let y = now.getFullYear();
+  if (m > 11) { m = 0; y++; }
+  return { year: y, month: m };
+}
+
+// Accent color mapping
+export const ACCENT_COLORS: Record<string, { primary: string; ring: string; sidebarPrimary: string }> = {
+  blue: { primary: "oklch(0.7 0.12 220)", ring: "oklch(0.7 0.12 220)", sidebarPrimary: "oklch(0.7 0.12 220)" },
+  violet: { primary: "oklch(0.65 0.15 300)", ring: "oklch(0.65 0.15 300)", sidebarPrimary: "oklch(0.65 0.15 300)" },
+  pink: { primary: "oklch(0.65 0.18 350)", ring: "oklch(0.65 0.18 350)", sidebarPrimary: "oklch(0.65 0.18 350)" },
+  emerald: { primary: "oklch(0.65 0.17 155)", ring: "oklch(0.65 0.17 155)", sidebarPrimary: "oklch(0.65 0.17 155)" },
+  amber: { primary: "oklch(0.75 0.15 80)", ring: "oklch(0.75 0.15 80)", sidebarPrimary: "oklch(0.75 0.15 80)" },
+  cyan: { primary: "oklch(0.7 0.12 195)", ring: "oklch(0.7 0.12 195)", sidebarPrimary: "oklch(0.7 0.12 195)" },
+  red: { primary: "oklch(0.6 0.2 25)", ring: "oklch(0.6 0.2 25)", sidebarPrimary: "oklch(0.6 0.2 25)" },
+  indigo: { primary: "oklch(0.6 0.15 270)", ring: "oklch(0.6 0.15 270)", sidebarPrimary: "oklch(0.6 0.15 270)" },
+};
+
+export function applyAccentColor(color: string) {
+  const accent = ACCENT_COLORS[color];
+  if (!accent || typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.style.setProperty("--primary", accent.primary);
+  root.style.setProperty("--ring", accent.ring);
+  root.style.setProperty("--sidebar-primary", accent.sidebarPrimary);
+  root.style.setProperty("--sidebar-ring", accent.ring);
+  root.style.setProperty("--chart-1", accent.primary);
 }

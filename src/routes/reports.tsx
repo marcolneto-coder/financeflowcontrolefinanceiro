@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { getMonthSummary, formatCurrency } from "@/lib/finance-store";
+import { getMonthSummary, formatCurrency, getNextMonth } from "@/lib/finance-store";
 import { useState, useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
@@ -17,12 +17,14 @@ export const Route = createFileRoute("/reports")({
 });
 
 const MONTHS_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const MONTHS_FULL = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#6366f1"];
 
 function ReportsPage() {
   const { state } = useFinance();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
+  const [tab, setTab] = useState<"overview" | "cards">("overview");
 
   const monthlyData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
@@ -33,10 +35,7 @@ function ReportsPage() {
 
   const yearTotals = useMemo(() => {
     return monthlyData.reduce(
-      (acc, m) => ({
-        income: acc.income + m.receitas,
-        expenses: acc.expenses + m.despesas,
-      }),
+      (acc, m) => ({ income: acc.income + m.receitas, expenses: acc.expenses + m.despesas }),
       { income: 0, expenses: 0 }
     );
   }, [monthlyData]);
@@ -53,17 +52,48 @@ function ReportsPage() {
         const name = cat?.name || "Outros";
         map[name] = (map[name] || 0) + t.amount;
       });
-    return Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [state.transactions, state.categories, year]);
 
+  // 12-month card projection starting from next month
+  const next = getNextMonth();
+  const cardProjection = useMemo(() => {
+    const months: { year: number; month: number; label: string }[] = [];
+    for (let i = 0; i < 12; i++) {
+      let m = next.month + i;
+      let y = next.year;
+      while (m > 11) { m -= 12; y++; }
+      months.push({ year: y, month: m, label: `${MONTHS_SHORT[m]}/${y}` });
+    }
+
+    const cardRows = state.creditCards.map((card) => {
+      const values = months.map(({ year: y, month: m }) => {
+        return state.transactions
+          .filter((t) => {
+            if (t.creditCardId !== card.id || t.type !== "expense") return false;
+            const d = new Date(t.date + "T12:00:00");
+            return d.getFullYear() === y && d.getMonth() === m;
+          })
+          .reduce((s, t) => s + t.amount, 0);
+      });
+      const total = values.reduce((s, v) => s + v, 0);
+      return { card, values, total };
+    });
+
+    const grandTotals = months.map((_, i) =>
+      cardRows.reduce((s, r) => s + r.values[i], 0)
+    );
+    const grandTotal = grandTotals.reduce((s, v) => s + v, 0);
+
+    return { months, cardRows, grandTotals, grandTotal };
+  }, [state.transactions, state.creditCards, next.month, next.year]);
+
   return (
-    <div className="p-8 max-w-5xl">
-      <header className="flex justify-between items-end mb-8">
+    <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
         <div>
           <p className="text-sm text-muted-foreground mb-1">Análise</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Relatórios</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Relatórios</h1>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setYear((y) => y - 1)} className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent transition-colors">←</button>
@@ -72,86 +102,148 @@ function ReportsPage() {
         </div>
       </header>
 
-      {/* Year summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-card p-6">
-          <p className="text-sm text-muted-foreground mb-2">Total Receitas</p>
-          <p className="text-2xl font-semibold tabular-nums text-income">{formatCurrency(yearTotals.income)}</p>
-        </div>
-        <div className="glass-card p-6">
-          <p className="text-sm text-muted-foreground mb-2">Total Despesas</p>
-          <p className="text-2xl font-semibold tabular-nums text-expense">{formatCurrency(yearTotals.expenses)}</p>
-        </div>
-        <div className="glass-card p-6">
-          <p className="text-sm text-muted-foreground mb-2">Saldo Anual</p>
-          <p className="text-2xl font-semibold tabular-nums text-primary">{formatCurrency(yearTotals.income - yearTotals.expenses)}</p>
-        </div>
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 bg-muted rounded-lg mb-8 w-fit">
+        {(["overview", "cards"] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}>
+            {t === "overview" ? "Visão Geral" : "Projeção Cartões"}
+          </button>
+        ))}
       </div>
 
-      {/* Monthly bar chart */}
-      <div className="glass-card p-6 mb-8">
-        <h2 className="text-lg font-medium mb-6">Receitas vs Despesas por Mês</h2>
-        {state.transactions.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-12">Adicione transações para ver o gráfico.</p>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyData} barCategoryGap="20%">
-              <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false}
-                tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip
-                contentStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                }}
-                formatter={(value: any) => formatCurrency(Number(value))}
-              />
-              <Bar dataKey="receitas" fill="var(--income)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="despesas" fill="var(--expense)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      {/* Category pie chart */}
-      <div className="glass-card p-6">
-        <h2 className="text-lg font-medium mb-6">Despesas por Categoria</h2>
-        {categoryData.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-12">Sem despesas neste ano.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={60}>
-                  {categoryData.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                  }}
-                  formatter={(value: any) => formatCurrency(Number(value))}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="space-y-3">
-              {categoryData.map((cat, i) => (
-                <div key={cat.name} className="flex items-center gap-3">
-                  <div className="size-3 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="text-sm flex-1">{cat.name}</span>
-                  <span className="text-sm tabular-nums font-medium">{formatCurrency(cat.value)}</span>
-                </div>
-              ))}
+      {tab === "overview" && (
+        <>
+          {/* Year summary */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <div className="glass-card p-4 md:p-6">
+              <p className="text-xs md:text-sm text-muted-foreground mb-2">Total Receitas</p>
+              <p className="text-xl md:text-2xl font-semibold tabular-nums text-income">{formatCurrency(yearTotals.income)}</p>
+            </div>
+            <div className="glass-card p-4 md:p-6">
+              <p className="text-xs md:text-sm text-muted-foreground mb-2">Total Despesas</p>
+              <p className="text-xl md:text-2xl font-semibold tabular-nums text-expense">{formatCurrency(yearTotals.expenses)}</p>
+            </div>
+            <div className="glass-card p-4 md:p-6">
+              <p className="text-xs md:text-sm text-muted-foreground mb-2">Saldo Anual</p>
+              <p className="text-xl md:text-2xl font-semibold tabular-nums text-primary">{formatCurrency(yearTotals.income - yearTotals.expenses)}</p>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Monthly bar chart */}
+          <div className="glass-card p-4 md:p-6 mb-8">
+            <h2 className="text-base md:text-lg font-medium mb-6">Receitas vs Despesas por Mês</h2>
+            {state.transactions.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">Adicione transações para ver o gráfico.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyData} barCategoryGap="20%">
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false}
+                    tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px" }}
+                    formatter={(value: any) => formatCurrency(Number(value))} />
+                  <Bar dataKey="receitas" fill="var(--income)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="despesas" fill="var(--expense)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Category pie chart */}
+          <div className="glass-card p-4 md:p-6">
+            <h2 className="text-base md:text-lg font-medium mb-6">Despesas por Categoria</h2>
+            {categoryData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">Sem despesas neste ano.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={60}>
+                      {categoryData.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px" }}
+                      formatter={(value: any) => formatCurrency(Number(value))} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-3">
+                  {categoryData.map((cat, i) => (
+                    <div key={cat.name} className="flex items-center gap-3">
+                      <div className="size-3 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                      <span className="text-sm flex-1">{cat.name}</span>
+                      <span className="text-sm tabular-nums font-medium">{formatCurrency(cat.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {tab === "cards" && (
+        <div className="glass-card p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-medium mb-4">Projeção 12 Meses — Cartões de Crédito</h2>
+          <p className="text-xs text-muted-foreground mb-6">
+            Previsão de gastos a partir de {MONTHS_FULL[cardProjection.months[0]?.month]} {cardProjection.months[0]?.year}
+          </p>
+
+          {state.creditCards.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">Nenhum cartão cadastrado.</p>
+          ) : (
+            <div className="overflow-x-auto -mx-4 px-4">
+              <table className="w-full text-xs border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-2 font-semibold text-muted-foreground sticky left-0 bg-card z-10 min-w-[120px]">Cartão</th>
+                    {cardProjection.months.map((m) => (
+                      <th key={m.label} className="text-right py-2 px-2 font-semibold text-muted-foreground whitespace-nowrap">{m.label}</th>
+                    ))}
+                    <th className="text-right py-2 px-2 font-semibold text-muted-foreground">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cardProjection.cardRows.map(({ card, values, total }) => (
+                    <tr key={card.id} className="border-b border-border/50 hover:bg-accent/20">
+                      <td className="py-2 px-2 font-medium sticky left-0 bg-card z-10">
+                        <div className="flex items-center gap-2">
+                          <div className="size-2 rounded-full" style={{ backgroundColor: card.color }} />
+                          <span className="truncate">{card.name}</span>
+                        </div>
+                      </td>
+                      {values.map((v, i) => (
+                        <td key={i} className={`text-right py-2 px-2 tabular-nums ${v > 0 ? "text-expense" : "text-muted-foreground"}`}>
+                          {v > 0 ? formatCurrency(v) : "—"}
+                        </td>
+                      ))}
+                      <td className="text-right py-2 px-2 tabular-nums font-semibold text-expense">
+                        {total > 0 ? formatCurrency(total) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-border font-semibold">
+                    <td className="py-2 px-2 sticky left-0 bg-card z-10">Total</td>
+                    {cardProjection.grandTotals.map((v, i) => (
+                      <td key={i} className={`text-right py-2 px-2 tabular-nums ${v > 0 ? "text-expense" : "text-muted-foreground"}`}>
+                        {v > 0 ? formatCurrency(v) : "—"}
+                      </td>
+                    ))}
+                    <td className="text-right py-2 px-2 tabular-nums text-expense">
+                      {cardProjection.grandTotal > 0 ? formatCurrency(cardProjection.grandTotal) : "—"}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
