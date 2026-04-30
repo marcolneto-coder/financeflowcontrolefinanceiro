@@ -5,7 +5,11 @@ import {
   CreditCard,
   BarChart3,
   Settings,
+  Menu,
+  X,
 } from "lucide-react";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -16,15 +20,15 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const currentPath = useRouterState({
-    select: (s) => s.location.pathname,
-  });
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
+  const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
 
-  return (
-    <aside className="w-64 shrink-0 border-r border-border bg-sidebar flex flex-col">
+  const navContent = (
+    <>
       <div className="p-6">
         <div className="flex items-center gap-3 mb-10">
           <div className="size-9 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -33,6 +37,11 @@ export function AppSidebar() {
           <span className="text-xl font-semibold tracking-tight text-foreground">
             Alento
           </span>
+          {isMobile && (
+            <button onClick={() => setOpen(false)} className="ml-auto p-1.5 rounded-lg hover:bg-accent">
+              <X className="size-5" />
+            </button>
+          )}
         </div>
 
         <nav className="space-y-1">
@@ -40,6 +49,7 @@ export function AppSidebar() {
             <Link
               key={item.url}
               to={item.url}
+              onClick={() => isMobile && setOpen(false)}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive(item.url)
                   ? "bg-primary/10 text-primary"
@@ -63,6 +73,35 @@ export function AppSidebar() {
           </p>
         </div>
       </div>
+    </>
+  );
+
+  // Mobile: hamburger + overlay
+  if (isMobile) {
+    return (
+      <>
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed top-4 left-4 z-40 p-2 rounded-lg bg-card border border-border shadow-lg"
+        >
+          <Menu className="size-5" />
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
+            <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-sidebar flex flex-col shadow-2xl">
+              {navContent}
+            </aside>
+          </>
+        )}
+      </>
+    );
+  }
+
+  // Desktop: static sidebar
+  return (
+    <aside className="w-64 shrink-0 border-r border-border bg-sidebar flex flex-col">
+      {navContent}
     </aside>
   );
 }
