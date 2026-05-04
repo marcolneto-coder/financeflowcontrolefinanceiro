@@ -1,7 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
+// Pure types & helpers (no localStorage). Persistence happens in finance-context via Supabase.
 
 export type TransactionType = "income" | "expense";
-
 export type CardBrand = "visa" | "mastercard" | "elo" | "amex" | "hipercard" | "other";
 
 export interface Category {
@@ -36,203 +35,8 @@ export interface Transaction {
   creditCardId?: string;
   store?: string;
   purchaseDate?: string;
-  billingMonth?: string; // YYYY-MM — determines which month the expense lands
-}
-
-export interface FinanceState {
-  transactions: Transaction[];
-  categories: Category[];
-  creditCards: CreditCard[];
-  accentColor: string;
-}
-
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: "cat-1", name: "Salário", type: "income" },
-  { id: "cat-2", name: "Freelance", type: "income" },
-  { id: "cat-3", name: "Investimentos", type: "income" },
-  { id: "cat-4", name: "Alimentação", type: "expense" },
-  { id: "cat-5", name: "Moradia", type: "expense" },
-  { id: "cat-6", name: "Transporte", type: "expense" },
-  { id: "cat-7", name: "Lazer", type: "expense" },
-  { id: "cat-8", name: "Saúde", type: "expense" },
-  { id: "cat-9", name: "Educação", type: "expense" },
-  { id: "cat-10", name: "Assinaturas", type: "expense" },
-];
-
-const STORAGE_KEY = "alento-finance-data";
-
-export function getDefaultState(): FinanceState {
-  return {
-    transactions: [],
-    categories: DEFAULT_CATEGORIES,
-    creditCards: [],
-    accentColor: "blue",
-  };
-}
-
-export function loadState(): FinanceState {
-  if (typeof window === "undefined") return getDefaultState();
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) return { ...getDefaultState(), ...JSON.parse(data) };
-  } catch {}
-  return getDefaultState();
-}
-
-export function saveState(state: FinanceState) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-export function exportData(state: FinanceState): string {
-  return JSON.stringify(state, null, 2);
-}
-
-export function importData(json: string): FinanceState | null {
-  try {
-    const data = JSON.parse(json);
-    if (data && data.transactions && data.categories) {
-      return { ...getDefaultState(), ...data };
-    }
-  } catch {}
-  return null;
-}
-
-export function addTransaction(
-  state: FinanceState,
-  input: Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId">
-): FinanceState {
-  if (input.isInstallment && input.totalInstallments > 1) {
-    const groupId = uuidv4();
-    const perInstallment = Math.round((input.amount / input.totalInstallments) * 100) / 100;
-    
-    // Use billingMonth as starting point if provided, otherwise use date
-    let baseDate: Date;
-    if (input.billingMonth) {
-      baseDate = new Date(input.billingMonth + "-15T12:00:00");
-    } else {
-      baseDate = new Date(input.date + "T12:00:00");
-    }
-    
-    const newTransactions: Transaction[] = [];
-    for (let i = 0; i < input.totalInstallments; i++) {
-      const d = new Date(baseDate);
-      d.setMonth(d.getMonth() + i);
-      newTransactions.push({
-        ...input,
-        id: uuidv4(),
-        amount: perInstallment,
-        currentInstallment: i + 1,
-        installmentGroupId: groupId,
-        date: d.toISOString().split("T")[0],
-      });
-    }
-    return { ...state, transactions: [...state.transactions, ...newTransactions] };
-  }
-
-  // For non-installment with billingMonth, use billingMonth to set date month
-  let finalDate = input.date;
-  if (input.billingMonth && !input.isInstallment) {
-    finalDate = input.billingMonth + "-" + input.date.split("-")[2];
-  }
-
-  return {
-    ...state,
-    transactions: [
-      ...state.transactions,
-      { ...input, id: uuidv4(), date: finalDate, currentInstallment: 1, installmentGroupId: undefined },
-    ],
-  };
-}
-
-export function updateTransaction(state: FinanceState, updated: Transaction): FinanceState {
-  return {
-    ...state,
-    transactions: state.transactions.map((t) => (t.id === updated.id ? updated : t)),
-  };
-}
-
-// Update this and all future installments/fixed transactions
-export function updateTransactionAndFuture(
-  state: FinanceState,
-  updated: Transaction
-): FinanceState {
-  const newTransactions = state.transactions.map((t) => {
-    if (t.id === updated.id) return updated;
-    
-    // Update future installments in same group
-    if (
-      updated.installmentGroupId &&
-      t.installmentGroupId === updated.installmentGroupId &&
-      t.currentInstallment > updated.currentInstallment
-    ) {
-      const monthDiff = t.currentInstallment - updated.currentInstallment;
-      const baseDate = new Date(updated.date + "T12:00:00");
-      baseDate.setMonth(baseDate.getMonth() + monthDiff);
-      return {
-        ...t,
-        description: updated.description,
-        amount: updated.amount,
-        categoryId: updated.categoryId,
-        creditCardId: updated.creditCardId,
-        store: updated.store,
-        date: baseDate.toISOString().split("T")[0],
-      };
-    }
-    
-    return t;
-  });
-  
-  return { ...state, transactions: newTransactions };
-}
-
-export function deleteTransaction(state: FinanceState, id: string): FinanceState {
-  const tx = state.transactions.find((t) => t.id === id);
-  if (tx?.installmentGroupId) {
-    return {
-      ...state,
-      transactions: state.transactions.filter(
-        (t) => t.installmentGroupId !== tx.installmentGroupId
-      ),
-    };
-  }
-  return { ...state, transactions: state.transactions.filter((t) => t.id !== id) };
-}
-
-export function addCategory(state: FinanceState, name: string, type: TransactionType): FinanceState {
-  return {
-    ...state,
-    categories: [...state.categories, { id: uuidv4(), name, type }],
-  };
-}
-
-export function deleteCategory(state: FinanceState, id: string): FinanceState {
-  return { ...state, categories: state.categories.filter((c) => c.id !== id) };
-}
-
-export function addCreditCard(
-  state: FinanceState,
-  card: Omit<CreditCard, "id">
-): FinanceState {
-  return {
-    ...state,
-    creditCards: [...state.creditCards, { ...card, id: uuidv4() }],
-  };
-}
-
-export function updateCreditCard(state: FinanceState, card: CreditCard): FinanceState {
-  return {
-    ...state,
-    creditCards: state.creditCards.map((c) => (c.id === card.id ? card : c)),
-  };
-}
-
-export function deleteCreditCard(state: FinanceState, id: string): FinanceState {
-  return {
-    ...state,
-    creditCards: state.creditCards.filter((c) => c.id !== id),
-    transactions: state.transactions.filter((t) => t.creditCardId !== id),
-  };
+  billingMonth?: string; // YYYY-MM
+  createdAt?: string;
 }
 
 export function getMonthTransactions(transactions: Transaction[], year: number, month: number) {
@@ -253,7 +57,6 @@ export function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
-// Get next month as default
 export function getNextMonth(): { year: number; month: number } {
   const now = new Date();
   let m = now.getMonth() + 1;
@@ -262,7 +65,6 @@ export function getNextMonth(): { year: number; month: number } {
   return { year: y, month: m };
 }
 
-// Accent color mapping
 export const ACCENT_COLORS: Record<string, { primary: string; ring: string; sidebarPrimary: string }> = {
   blue: { primary: "oklch(0.7 0.12 220)", ring: "oklch(0.7 0.12 220)", sidebarPrimary: "oklch(0.7 0.12 220)" },
   violet: { primary: "oklch(0.65 0.15 300)", ring: "oklch(0.65 0.15 300)", sidebarPrimary: "oklch(0.65 0.15 300)" },
@@ -284,3 +86,10 @@ export function applyAccentColor(color: string) {
   root.style.setProperty("--sidebar-ring", accent.ring);
   root.style.setProperty("--chart-1", accent.primary);
 }
+
+const DEFAULT_INCOME = ["Salário", "Freelance", "Investimentos"];
+const DEFAULT_EXPENSE = ["Alimentação", "Moradia", "Transporte", "Lazer", "Saúde", "Educação", "Assinaturas"];
+export const DEFAULT_CATEGORIES = [
+  ...DEFAULT_INCOME.map((name) => ({ name, type: "income" as TransactionType })),
+  ...DEFAULT_EXPENSE.map((name) => ({ name, type: "expense" as TransactionType })),
+];
