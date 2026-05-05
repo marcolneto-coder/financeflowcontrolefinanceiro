@@ -8,7 +8,7 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
   head: () => ({
     meta: [
-      { title: "Configurações — Alento" },
+      { title: "Configurações — Finance Flow" },
       { name: "description", content: "Personalize seu app de finanças" },
     ],
   }),
@@ -40,7 +40,7 @@ function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `alento-backup-${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `finance-flow-backup-${new Date().toISOString().split("T")[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -49,9 +49,9 @@ function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const json = ev.target?.result as string;
-      const ok = importBackup(json);
+      const ok = await importBackup(json);
       setImportStatus(ok ? "✅ Backup restaurado com sucesso!" : "❌ Arquivo inválido.");
       setTimeout(() => setImportStatus(""), 4000);
     };

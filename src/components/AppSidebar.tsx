@@ -7,9 +7,11 @@ import {
   Settings,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/lib/auth-context";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -23,6 +25,7 @@ export function AppSidebar() {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
+  const { user, signOut } = useAuth();
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
@@ -35,7 +38,7 @@ export function AppSidebar() {
             <div className="size-3.5 rounded-full bg-primary" />
           </div>
           <span className="text-xl font-semibold tracking-tight text-foreground">
-            Alento
+            Finance Flow
           </span>
           {isMobile && (
             <button onClick={() => setOpen(false)} className="ml-auto p-1.5 rounded-lg hover:bg-accent">
@@ -63,15 +66,22 @@ export function AppSidebar() {
         </nav>
       </div>
 
-      <div className="mt-auto p-6">
+      <div className="mt-auto p-6 space-y-3">
         <div className="glass-card p-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-            Alento Finance
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 truncate">
+            {user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Conta"}
           </p>
-          <p className="text-xs text-muted-foreground">
-            Controle pessoal de finanças
+          <p className="text-xs text-muted-foreground truncate">
+            {user?.email}
           </p>
         </div>
+        <button
+          onClick={() => signOut()}
+          className="flex items-center gap-2 w-full px-4 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+        >
+          <LogOut className="size-4" />
+          <span>Sair</span>
+        </button>
       </div>
     </>
   );

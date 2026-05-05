@@ -78,7 +78,7 @@ function mapTx(r: TxRow): Transaction {
   };
 }
 
-function txToRow(t: Partial<Transaction>, userId: string) {
+function txToRow(t: Transaction | (Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId"> & Partial<Pick<Transaction, "currentInstallment" | "installmentGroupId">>), userId: string) {
   return {
     user_id: userId,
     type: t.type,

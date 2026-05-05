@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
   component: DashboardPage,
   head: () => ({
     meta: [
-      { title: "Dashboard — Alento" },
+      { title: "Dashboard — Finance Flow" },
       { name: "description", content: "Visão geral das suas finanças pessoais" },
     ],
   }),

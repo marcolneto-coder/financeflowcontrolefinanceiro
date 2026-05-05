@@ -43,6 +43,7 @@ export type Database = {
           brand: string | null
           card_limit: number
           closing_day: number | null
+          color: string
           created_at: string
           due_day: number | null
           id: string
@@ -54,6 +55,7 @@ export type Database = {
           brand?: string | null
           card_limit?: number
           closing_day?: number | null
+          color?: string
           created_at?: string
           due_day?: number | null
           id?: string
@@ -65,6 +67,7 @@ export type Database = {
           brand?: string | null
           card_limit?: number
           closing_day?: number | null
+          color?: string
           created_at?: string
           due_day?: number | null
           id?: string
