@@ -25,6 +25,7 @@ export function AppSidebar() {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
+  const { user, signOut } = useAuth();
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
