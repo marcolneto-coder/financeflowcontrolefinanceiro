@@ -24,7 +24,7 @@ function ReportsPage() {
   const { state } = useFinance();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
-  const [tab, setTab] = useState<"overview" | "cards">("overview");
+  const [tab, setTab] = useState<"overview" | "cards" | "projection">("overview");
 
   const monthlyData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
