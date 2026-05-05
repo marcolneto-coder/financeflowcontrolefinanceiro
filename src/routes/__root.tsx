@@ -1,5 +1,7 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { FinanceProvider } from "../lib/finance-context";
+import { AuthProvider, useAuth } from "../lib/auth-context";
 import { AppSidebar } from "../components/AppSidebar";
 import appCss from "../styles.css?url";
 
@@ -31,13 +33,11 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Finance Flow — Controle Financeiro Pessoal" },
-      { name: "description", content: "App for personal finance management, tracking income, fixed expenses, and credit card transactions." },
+      { name: "description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
       { property: "og:title", content: "Finance Flow — Controle Financeiro Pessoal" },
       { name: "twitter:title", content: "Finance Flow — Controle Financeiro Pessoal" },
-      { property: "og:description", content: "App for personal finance management, tracking income, fixed expenses, and credit card transactions." },
-      { name: "twitter:description", content: "App for personal finance management, tracking income, fixed expenses, and credit card transactions." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f570cf64-2e6b-4057-bf60-86a5ed2b481d/id-preview-77b8f28f--2b060b3b-4929-4f0c-926c-aeecce8286fc.lovable.app-1777569962447.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f570cf64-2e6b-4057-bf60-86a5ed2b481d/id-preview-77b8f28f--2b060b3b-4929-4f0c-926c-aeecce8286fc.lovable.app-1777569962447.png" },
+      { property: "og:description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
+      { name: "twitter:description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -69,6 +69,37 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  return (
+    <AuthProvider>
+      <AuthGate />
+    </AuthProvider>
+  );
+}
+
+function AuthGate() {
+  const { user, loading } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const isAuthRoute = pathname === "/auth";
+
+  useEffect(() => {
+    if (!loading && !user && !isAuthRoute) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [loading, user, isAuthRoute, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="size-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (isAuthRoute || !user) {
+    return <Outlet />;
+  }
+
   return (
     <FinanceProvider>
       <div className="min-h-screen flex w-full">
