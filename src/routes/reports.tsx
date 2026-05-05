@@ -160,13 +160,13 @@ function ReportsPage() {
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-muted rounded-lg mb-8 w-fit">
-        {(["overview", "cards"] as const).map((t) => (
+      <div className="flex gap-1 p-1 bg-muted rounded-lg mb-8 w-fit flex-wrap">
+        {(["overview", "cards", "projection"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors ${
               tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
             }`}>
-            {t === "overview" ? "Visão Geral" : "Projeção Cartões"}
+            {t === "overview" ? "Visão Geral" : t === "cards" ? "Projeção Cartões" : "Projeção Mensal"}
           </button>
         ))}
       </div>
