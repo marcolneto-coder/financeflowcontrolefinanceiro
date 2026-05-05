@@ -301,6 +301,104 @@ function ReportsPage() {
           )}
         </div>
       )}
+
+      {tab === "projection" && (
+        <div className="glass-card p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-medium mb-2">Projeção Mensal de Despesas</h2>
+          <p className="text-xs text-muted-foreground mb-6">
+            Cartões agregados por total e despesas fixas detalhadas — próximos 12 meses.
+          </p>
+
+          {monthlyProjection.cardTotalsRow.length === 0 && monthlyProjection.fixedRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">
+              Cadastre cartões ou despesas fixas para visualizar a projeção.
+            </p>
+          ) : (
+            <div className="overflow-x-auto -mx-4 px-4">
+              <table className="w-full text-xs border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-2 font-semibold text-muted-foreground sticky left-0 bg-card z-10 min-w-[160px]">Item</th>
+                    {monthlyProjection.months.map((m) => (
+                      <th key={m.label} className="text-right py-2 px-2 font-semibold text-muted-foreground whitespace-nowrap">{m.label}</th>
+                    ))}
+                    <th className="text-right py-2 px-2 font-semibold text-muted-foreground">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Cartões — apenas total por cartão */}
+                  {monthlyProjection.cardTotalsRow.length > 0 && (
+                    <tr className="bg-muted/30">
+                      <td colSpan={monthlyProjection.months.length + 2} className="py-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sticky left-0 bg-muted/30 z-10">
+                        Cartões de Crédito (total por cartão)
+                      </td>
+                    </tr>
+                  )}
+                  {monthlyProjection.cardTotalsRow.map(({ card, values, total }) => (
+                    <tr key={card.id} className="border-b border-border/50 hover:bg-accent/20">
+                      <td className="py-2 px-2 font-medium sticky left-0 bg-card z-10">
+                        <div className="flex items-center gap-2">
+                          <div className="size-2 rounded-full" style={{ backgroundColor: card.color }} />
+                          <span className="truncate">{card.name}</span>
+                        </div>
+                      </td>
+                      {values.map((v, i) => (
+                        <td key={i} className={`text-right py-2 px-2 tabular-nums ${v > 0 ? "text-expense" : "text-muted-foreground"}`}>
+                          {v > 0 ? formatCurrency(v) : "—"}
+                        </td>
+                      ))}
+                      <td className="text-right py-2 px-2 tabular-nums font-semibold text-expense">
+                        {total > 0 ? formatCurrency(total) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Despesas fixas — detalhadas */}
+                  {monthlyProjection.fixedRows.length > 0 && (
+                    <tr className="bg-muted/30">
+                      <td colSpan={monthlyProjection.months.length + 2} className="py-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sticky left-0 bg-muted/30 z-10">
+                        Despesas Fixas (detalhadas)
+                      </td>
+                    </tr>
+                  )}
+                  {monthlyProjection.fixedRows.map((row, idx) => {
+                    const cat = state.categories.find((c) => c.id === row.categoryId);
+                    return (
+                      <tr key={idx} className="border-b border-border/50 hover:bg-accent/20">
+                        <td className="py-2 px-2 font-medium sticky left-0 bg-card z-10">
+                          <div className="truncate">{row.description}</div>
+                          {cat && <div className="text-[10px] text-muted-foreground truncate">{cat.name}</div>}
+                        </td>
+                        {row.values.map((v, i) => (
+                          <td key={i} className={`text-right py-2 px-2 tabular-nums ${v > 0 ? "text-expense" : "text-muted-foreground"}`}>
+                            {v > 0 ? formatCurrency(v) : "—"}
+                          </td>
+                        ))}
+                        <td className="text-right py-2 px-2 tabular-nums font-semibold text-expense">
+                          {row.total > 0 ? formatCurrency(row.total) : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-border font-semibold">
+                    <td className="py-2 px-2 sticky left-0 bg-card z-10">Total Geral</td>
+                    {monthlyProjection.monthGrandTotals.map((v, i) => (
+                      <td key={i} className={`text-right py-2 px-2 tabular-nums ${v > 0 ? "text-expense" : "text-muted-foreground"}`}>
+                        {v > 0 ? formatCurrency(v) : "—"}
+                      </td>
+                    ))}
+                    <td className="text-right py-2 px-2 tabular-nums text-expense">
+                      {monthlyProjection.grandTotal > 0 ? formatCurrency(monthlyProjection.grandTotal) : "—"}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
