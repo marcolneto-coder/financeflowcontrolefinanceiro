@@ -88,6 +88,63 @@ function ReportsPage() {
     return { months, cardRows, grandTotals, grandTotal };
   }, [state.transactions, state.creditCards, next.month, next.year]);
 
+  // Monthly projection: 12 months ahead — cards aggregated, fixed expenses detailed
+  const monthlyProjection = useMemo(() => {
+    const months: { year: number; month: number; label: string }[] = [];
+    for (let i = 0; i < 12; i++) {
+      let m = next.month + i;
+      let y = next.year;
+      while (m > 11) { m -= 12; y++; }
+      months.push({ year: y, month: m, label: `${MONTHS_SHORT[m]}/${y}` });
+    }
+
+    // Card totals per month
+    const cardTotalsRow = state.creditCards.map((card) => {
+      const values = months.map(({ year: y, month: m }) =>
+        state.transactions
+          .filter((t) => {
+            if (t.creditCardId !== card.id || t.type !== "expense") return false;
+            const d = new Date(t.date + "T12:00:00");
+            return d.getFullYear() === y && d.getMonth() === m;
+          })
+          .reduce((s, t) => s + t.amount, 0)
+      );
+      return { card, values, total: values.reduce((s, v) => s + v, 0) };
+    });
+
+    // Fixed expenses (no credit card) detailed by description+category
+    const fixedExpenses = state.transactions.filter((t) => t.type === "expense" && t.isFixed && !t.creditCardId);
+    // Group by description
+    const fixedGroups = new Map<string, { description: string; categoryId: string; values: number[]; total: number }>();
+    for (const tx of fixedExpenses) {
+      const key = `${tx.description}__${tx.categoryId}`;
+      if (!fixedGroups.has(key)) {
+        fixedGroups.set(key, { description: tx.description, categoryId: tx.categoryId, values: months.map(() => 0), total: 0 });
+      }
+      const grp = fixedGroups.get(key)!;
+      months.forEach(({ year: y, month: m }, i) => {
+        const d = new Date(tx.date + "T12:00:00");
+        if (d.getFullYear() === y && d.getMonth() === m) {
+          grp.values[i] += tx.amount;
+        }
+      });
+    }
+    // Recompute totals
+    for (const grp of fixedGroups.values()) {
+      grp.total = grp.values.reduce((s, v) => s + v, 0);
+    }
+    const fixedRows = Array.from(fixedGroups.values()).filter((r) => r.total > 0);
+
+    // Grand totals per month
+    const monthGrandTotals = months.map((_, i) =>
+      cardTotalsRow.reduce((s, r) => s + r.values[i], 0) +
+      fixedRows.reduce((s, r) => s + r.values[i], 0)
+    );
+    const grandTotal = monthGrandTotals.reduce((s, v) => s + v, 0);
+
+    return { months, cardTotalsRow, fixedRows, monthGrandTotals, grandTotal };
+  }, [state.transactions, state.creditCards, next.month, next.year]);
+
   return (
     <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
