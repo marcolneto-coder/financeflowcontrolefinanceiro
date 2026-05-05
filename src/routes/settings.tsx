@@ -49,9 +49,9 @@ function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const json = ev.target?.result as string;
-      const ok = importBackup(json);
+      const ok = await importBackup(json);
       setImportStatus(ok ? "✅ Backup restaurado com sucesso!" : "❌ Arquivo inválido.");
       setTimeout(() => setImportStatus(""), 4000);
     };
