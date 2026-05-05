@@ -7,9 +7,11 @@ import {
   Settings,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/lib/auth-context";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
