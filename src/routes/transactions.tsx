@@ -10,7 +10,7 @@ export const Route = createFileRoute("/transactions")({
   component: TransactionsPage,
   head: () => ({
     meta: [
-      { title: "Transações — Alento" },
+      { title: "Transações — Finance Flow" },
       { name: "description", content: "Gerencie suas receitas e despesas" },
     ],
   }),

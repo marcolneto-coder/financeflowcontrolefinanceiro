@@ -10,7 +10,7 @@ export const Route = createFileRoute("/reports")({
   component: ReportsPage,
   head: () => ({
     meta: [
-      { title: "Relatórios — Alento" },
+      { title: "Relatórios — Finance Flow" },
       { name: "description", content: "Relatórios detalhados das suas finanças" },
     ],
   }),
