@@ -49,16 +49,13 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
     ? Math.round((parsedAmount / parsedInstallments) * 100) / 100
     : 0;
 
-  const handleCreateCategory = () => {
-    if (newCategoryName.trim()) {
-      addCategory(newCategoryName.trim(), type);
-      setShowNewCategory(false);
-      setNewCategoryName("");
-      setTimeout(() => {
-        const newCat = state.categories.find((c) => c.name === newCategoryName.trim() && c.type === type);
-        if (newCat) setCategoryId(newCat.id);
-      }, 50);
-    }
+  const handleCreateCategory = async () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    const newId = await addCategory(trimmed, type);
+    if (newId) setCategoryId(newId);
+    setShowNewCategory(false);
+    setNewCategoryName("");
   };
 
   // Parse billing month to get starting month info for installment preview
