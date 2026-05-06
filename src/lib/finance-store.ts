@@ -65,6 +65,31 @@ export function getNextMonth(): { year: number; month: number } {
   return { year: y, month: m };
 }
 
+export function getCurrentMonth(): { year: number; month: number } {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() };
+}
+
+export type ThemeMode = "light" | "dark";
+
+export function applyThemeMode(mode: ThemeMode) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (mode === "light") root.classList.add("light");
+  else root.classList.remove("light");
+}
+
+export function getStoredThemeMode(): ThemeMode {
+  if (typeof localStorage === "undefined") return "dark";
+  return (localStorage.getItem("theme-mode") as ThemeMode) || "dark";
+}
+
+export function setStoredThemeMode(mode: ThemeMode) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem("theme-mode", mode);
+  applyThemeMode(mode);
+}
+
 export const ACCENT_COLORS: Record<string, { primary: string; ring: string; sidebarPrimary: string }> = {
   blue: { primary: "oklch(0.7 0.12 220)", ring: "oklch(0.7 0.12 220)", sidebarPrimary: "oklch(0.7 0.12 220)" },
   violet: { primary: "oklch(0.65 0.15 300)", ring: "oklch(0.65 0.15 300)", sidebarPrimary: "oklch(0.65 0.15 300)" },
