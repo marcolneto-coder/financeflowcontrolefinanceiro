@@ -69,6 +69,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    // Apply stored theme as soon as the app mounts on the client
+    if (typeof window !== "undefined") {
+      const stored = (localStorage.getItem("theme-mode") as "light" | "dark" | null) || "dark";
+      if (stored === "light") document.documentElement.classList.add("light");
+      else document.documentElement.classList.remove("light");
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <AuthGate />
