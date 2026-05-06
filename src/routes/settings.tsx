@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { useState, useRef } from "react";
-import { Trash2, Palette, Download, Upload } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Trash2, Palette, Download, Upload, Sun, Moon, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getStoredThemeMode, setStoredThemeMode, type ThemeMode } from "@/lib/finance-store";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -29,7 +30,17 @@ function SettingsPage() {
   const { state, setAccentColor, deleteCategory, exportBackup, importBackup } = useFinance();
   const [tab, setTab] = useState<"appearance" | "categories" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
+  const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setThemeMode(getStoredThemeMode());
+  }, []);
+
+  const handleThemeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    setStoredThemeMode(mode);
+  };
 
   const incomeCategories = state.categories.filter((c) => c.type === "income");
   const expenseCategories = state.categories.filter((c) => c.type === "expense");
@@ -79,6 +90,31 @@ function SettingsPage() {
 
       {tab === "appearance" && (
         <div className="space-y-8">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              {themeMode === "dark" ? <Moon className="size-4 text-muted-foreground" /> : <Sun className="size-4 text-muted-foreground" />}
+              <h2 className="text-base md:text-lg font-medium">Tema</h2>
+            </div>
+            <div className="glass-card p-4 md:p-6">
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => handleThemeChange("light")}
+                  className={`flex items-center justify-center gap-2 p-3 md:p-4 rounded-xl transition-all ${
+                    themeMode === "light" ? "bg-accent ring-2 ring-ring" : "hover:bg-accent/50"
+                  }`}>
+                  <Sun className="size-4" />
+                  <span className="text-sm font-medium">Modo claro</span>
+                </button>
+                <button onClick={() => handleThemeChange("dark")}
+                  className={`flex items-center justify-center gap-2 p-3 md:p-4 rounded-xl transition-all ${
+                    themeMode === "dark" ? "bg-accent ring-2 ring-ring" : "hover:bg-accent/50"
+                  }`}>
+                  <Moon className="size-4" />
+                  <span className="text-sm font-medium">Modo escuro</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Palette className="size-4 text-muted-foreground" />
@@ -157,6 +193,21 @@ function SettingsPage() {
 
       {tab === "backup" && (
         <div className="space-y-6">
+          <div className="glass-card p-4 md:p-6 border-l-4 border-l-primary">
+            <div className="flex items-start gap-3">
+              <Cloud className="size-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <h2 className="text-base md:text-lg font-medium mb-1">Backup automático na nuvem</h2>
+                <p className="text-xs text-muted-foreground">
+                  Seus dados já são salvos automaticamente na nuvem do Finance Flow e ficam vinculados à sua conta — você não precisa se preocupar com perda de dados entre atualizações ou ao trocar de dispositivo.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  <strong>Backup automático no OneDrive:</strong> requer integração OAuth com sua conta Microsoft, que ainda não está disponível nativamente. Por enquanto, use o botão abaixo para baixar e guardar manualmente no OneDrive.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="glass-card p-4 md:p-6">
             <h2 className="text-base md:text-lg font-medium mb-2">Exportar Backup</h2>
             <p className="text-xs text-muted-foreground mb-4">

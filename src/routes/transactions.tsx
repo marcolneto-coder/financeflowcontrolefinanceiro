@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { type Transaction, type TransactionType, formatCurrency, getNextMonth } from "@/lib/finance-store";
+import { type Transaction, type TransactionType, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo } from "react";
 import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,9 +23,9 @@ const MONTHS = [
 
 function TransactionsPage() {
   const { state, deleteTransaction, duplicateToNextMonth } = useFinance();
-  const next = getNextMonth();
-  const [year, setYear] = useState(next.year);
-  const [month, setMonth] = useState(next.month);
+  const current = getCurrentMonth();
+  const [year, setYear] = useState(current.year);
+  const [month, setMonth] = useState(current.month);
   const [filter, setFilter] = useState<"all" | TransactionType>("all");
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { getMonthSummary, formatCurrency, getNextMonth, type Transaction } from "@/lib/finance-store";
+import { getMonthSummary, formatCurrency, getCurrentMonth, type Transaction } from "@/lib/finance-store";
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useState } from "react";
 
@@ -21,9 +21,9 @@ const MONTHS = [
 
 function DashboardPage() {
   const { state } = useFinance();
-  const next = getNextMonth();
-  const [year, setYear] = useState(next.year);
-  const [month, setMonth] = useState(next.month);
+  const current = getCurrentMonth();
+  const [year, setYear] = useState(current.year);
+  const [month, setMonth] = useState(current.month);
 
   const summary = getMonthSummary(state.transactions, year, month);
   const prevSummary = getMonthSummary(
