@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { type Transaction, type TransactionType, formatCurrency, getNextMonth } from "@/lib/finance-store";
+import { type Transaction, type TransactionType, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo } from "react";
 import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
