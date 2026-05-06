@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { useState, useRef } from "react";
-import { Trash2, Palette, Download, Upload } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Trash2, Palette, Download, Upload, Sun, Moon, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getStoredThemeMode, setStoredThemeMode, type ThemeMode } from "@/lib/finance-store";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
