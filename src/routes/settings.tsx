@@ -30,7 +30,17 @@ function SettingsPage() {
   const { state, setAccentColor, deleteCategory, exportBackup, importBackup } = useFinance();
   const [tab, setTab] = useState<"appearance" | "categories" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
+  const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setThemeMode(getStoredThemeMode());
+  }, []);
+
+  const handleThemeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    setStoredThemeMode(mode);
+  };
 
   const incomeCategories = state.categories.filter((c) => c.type === "income");
   const expenseCategories = state.categories.filter((c) => c.type === "expense");
