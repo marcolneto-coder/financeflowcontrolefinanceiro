@@ -21,9 +21,9 @@ const MONTHS = [
 
 function DashboardPage() {
   const { state } = useFinance();
-  const next = getNextMonth();
-  const [year, setYear] = useState(next.year);
-  const [month, setMonth] = useState(next.month);
+  const current = getCurrentMonth();
+  const [year, setYear] = useState(current.year);
+  const [month, setMonth] = useState(current.month);
 
   const summary = getMonthSummary(state.transactions, year, month);
   const prevSummary = getMonthSummary(
