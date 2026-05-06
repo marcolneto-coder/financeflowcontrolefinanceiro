@@ -193,6 +193,21 @@ function SettingsPage() {
 
       {tab === "backup" && (
         <div className="space-y-6">
+          <div className="glass-card p-4 md:p-6 border-l-4 border-l-primary">
+            <div className="flex items-start gap-3">
+              <Cloud className="size-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <h2 className="text-base md:text-lg font-medium mb-1">Backup automático na nuvem</h2>
+                <p className="text-xs text-muted-foreground">
+                  Seus dados já são salvos automaticamente na nuvem do Finance Flow e ficam vinculados à sua conta — você não precisa se preocupar com perda de dados entre atualizações ou ao trocar de dispositivo.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  <strong>Backup automático no OneDrive:</strong> requer integração OAuth com sua conta Microsoft, que ainda não está disponível nativamente. Por enquanto, use o botão abaixo para baixar e guardar manualmente no OneDrive.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="glass-card p-4 md:p-6">
             <h2 className="text-base md:text-lg font-medium mb-2">Exportar Backup</h2>
             <p className="text-xs text-muted-foreground mb-4">
