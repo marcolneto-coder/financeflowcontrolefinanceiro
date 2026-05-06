@@ -142,7 +142,7 @@ function ReportsPage() {
                   <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false}
                     tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
                   <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px" }}
-                    formatter={(value: number | string) => formatCurrency(Number(value))} />
+                    formatter={(value) => formatCurrency(Number(value))} />
                   <Bar dataKey="receitas" fill="var(--income)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="despesas" fill="var(--expense)" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -164,7 +164,7 @@ function ReportsPage() {
                       ))}
                     </Pie>
                     <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px" }}
-                      formatter={(value: number | string) => formatCurrency(Number(value))} />
+                      formatter={(value) => formatCurrency(Number(value))} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-3">
