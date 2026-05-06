@@ -208,9 +208,7 @@ function ReportsPage() {
               <div key={card.id} className="glass-card p-4 md:p-6">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                   <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: card.color }}>
-                      <CardBrandIcon brand={card.brand} className="text-white" />
-                    </div>
+                    <CardBrandIcon brand={card.brand} className="w-10 h-6" />
                     <div>
                       <p className="font-medium">{card.name}</p>
                       {card.lastDigits && <p className="text-[10px] text-muted-foreground">•••• {card.lastDigits}</p>}
