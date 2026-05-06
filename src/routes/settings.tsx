@@ -92,6 +92,31 @@ function SettingsPage() {
         <div className="space-y-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
+              {themeMode === "dark" ? <Moon className="size-4 text-muted-foreground" /> : <Sun className="size-4 text-muted-foreground" />}
+              <h2 className="text-base md:text-lg font-medium">Tema</h2>
+            </div>
+            <div className="glass-card p-4 md:p-6">
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => handleThemeChange("light")}
+                  className={`flex items-center justify-center gap-2 p-3 md:p-4 rounded-xl transition-all ${
+                    themeMode === "light" ? "bg-accent ring-2 ring-ring" : "hover:bg-accent/50"
+                  }`}>
+                  <Sun className="size-4" />
+                  <span className="text-sm font-medium">Modo claro</span>
+                </button>
+                <button onClick={() => handleThemeChange("dark")}
+                  className={`flex items-center justify-center gap-2 p-3 md:p-4 rounded-xl transition-all ${
+                    themeMode === "dark" ? "bg-accent ring-2 ring-ring" : "hover:bg-accent/50"
+                  }`}>
+                  <Moon className="size-4" />
+                  <span className="text-sm font-medium">Modo escuro</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-4">
               <Palette className="size-4 text-muted-foreground" />
               <h2 className="text-base md:text-lg font-medium">Cor de destaque</h2>
             </div>
