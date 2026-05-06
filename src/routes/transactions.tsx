@@ -23,9 +23,9 @@ const MONTHS = [
 
 function TransactionsPage() {
   const { state, deleteTransaction, duplicateToNextMonth } = useFinance();
-  const next = getNextMonth();
-  const [year, setYear] = useState(next.year);
-  const [month, setMonth] = useState(next.month);
+  const current = getCurrentMonth();
+  const [year, setYear] = useState(current.year);
+  const [month, setMonth] = useState(current.month);
   const [filter, setFilter] = useState<"all" | TransactionType>("all");
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
