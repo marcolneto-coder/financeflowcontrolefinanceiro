@@ -120,12 +120,24 @@ function AuthGate() {
 
   return (
     <FinanceProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
-      </div>
+      <AppLockGate>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar />
+          <main className="flex-1 overflow-y-auto">
+            <Outlet />
+          </main>
+          <QuickAddFab />
+        </div>
+      </AppLockGate>
     </FinanceProvider>
   );
+}
+
+function AppLockGate({ children }: { children: React.ReactNode }) {
+  const [locked, setLocked] = useState(() => hasPin() && !isUnlockedThisSession());
+
+  if (locked) {
+    return <PinLockScreen onUnlock={() => setLocked(false)} />;
+  }
+  return <>{children}</>;
 }
