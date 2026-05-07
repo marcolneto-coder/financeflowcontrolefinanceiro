@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
@@ -183,13 +183,13 @@ function ReportsPage() {
       )}
 
       {tab === "cards" && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="glass-card p-4 md:p-6">
             <div className="flex flex-col sm:flex-row justify-between gap-3">
               <div>
                 <h2 className="text-base md:text-lg font-medium">Projeção 12 Meses — Cartões</h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Transações detalhadas a partir de {MONTHS_FULL[cardProjection.months[0]?.month]}/{cardProjection.months[0]?.year}
+                  A partir de {MONTHS_FULL[cardProjection.months[0]?.month]}/{cardProjection.months[0]?.year}
                 </p>
               </div>
               <div className="text-right">
@@ -204,66 +204,110 @@ function ReportsPage() {
               Nenhum cartão cadastrado.
             </div>
           ) : (
-            cardProjection.cardBlocks.map(({ card, monthly, cardTotal }) => (
-              <div key={card.id} className="glass-card p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <CardBrandIcon brand={card.brand} className="w-10 h-6" />
-                    <div>
-                      <p className="font-medium">{card.name}</p>
-                      {card.lastDigits && <p className="text-[10px] text-muted-foreground">•••• {card.lastDigits}</p>}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-muted-foreground uppercase">Total cartão</p>
-                    <p className="text-base font-semibold tabular-nums text-expense">{formatCurrency(cardTotal)}</p>
-                  </div>
-                </div>
+            <div className="glass-card p-2 md:p-4 overflow-x-auto">
+              <table className="w-full text-xs border-collapse min-w-[900px]">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40">
+                    <th className="text-left p-2 font-semibold sticky left-0 bg-muted/40 z-10 min-w-[120px]">Cartão</th>
+                    <th className="text-left p-2 font-semibold min-w-[200px]">Descrição</th>
+                    {cardProjection.months.map((mo, i) => (
+                      <th key={i} className="text-right p-2 font-semibold whitespace-nowrap">
+                        {MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {cardProjection.cardBlocks.map(({ card, monthly, cardTotal }) => {
+                    // collect unique transaction "rows" by description+installmentGroup across months
+                    const rowMap = new Map<string, { key: string; description: string; store?: string; isInstallment: boolean; totalInstallments: number; perMonth: (number | null)[] }>();
+                    monthly.forEach((m, mi) => {
+                      m.txs.forEach((tx) => {
+                        const key = tx.installmentGroupId || `${tx.description}|${tx.store || ""}`;
+                        if (!rowMap.has(key)) {
+                          rowMap.set(key, {
+                            key,
+                            description: tx.description,
+                            store: tx.store,
+                            isInstallment: tx.isInstallment,
+                            totalInstallments: tx.totalInstallments,
+                            perMonth: Array(12).fill(null),
+                          });
+                        }
+                        const row = rowMap.get(key)!;
+                        row.perMonth[mi] = (row.perMonth[mi] || 0) + tx.amount;
+                      });
+                    });
+                    const rows = Array.from(rowMap.values());
 
-                <div className="space-y-4">
-                  {monthly.every((m) => m.txs.length === 0) ? (
-                    <p className="text-sm text-muted-foreground text-center py-6">Sem lançamentos previstos.</p>
-                  ) : (
-                    monthly.map((m, i) => {
-                      if (m.txs.length === 0) return null;
-                      const mo = cardProjection.months[i];
-                      return (
-                        <div key={i}>
-                          <div className="flex items-center justify-between mb-2 text-xs">
-                            <span className="font-semibold uppercase tracking-wider text-muted-foreground">
-                              {MONTHS_FULL[mo.month]}/{mo.year}
-                            </span>
-                            <span className="tabular-nums font-medium text-expense">{formatCurrency(m.total)}</span>
-                          </div>
-                          <div className="space-y-1">
-                            {m.txs.map((tx) => {
-                              const cat = state.categories.find((c) => c.id === tx.categoryId);
-                              return (
-                                <div key={tx.id} className="flex items-center justify-between text-xs py-1.5 px-2 rounded hover:bg-accent/30">
-                                  <div className="flex-1 min-w-0">
-                                    <p className="truncate">
-                                      {tx.description}
-                                      {tx.isInstallment && tx.totalInstallments > 1 && (
-                                        <span className="text-muted-foreground ml-1">({tx.currentInstallment}/{tx.totalInstallments})</span>
-                                      )}
-                                    </p>
-                                    <p className="text-[10px] text-muted-foreground truncate">
-                                      {cat?.name}
-                                      {tx.store ? ` • ${tx.store}` : ""}
-                                    </p>
+                    return (
+                      <Fragment key={card.id}>
+                        {rows.length === 0 ? (
+                          <tr key={`${card.id}-empty`} className="border-b border-border/50">
+                            <td className="p-2 align-middle sticky left-0 bg-card z-10">
+                              <div className="flex items-center gap-2">
+                                <CardBrandIcon brand={card.brand} className="w-7 h-4" />
+                                <span className="truncate">{card.name}</span>
+                              </div>
+                            </td>
+                            <td colSpan={13} className="p-2 text-muted-foreground italic">Sem lançamentos</td>
+                          </tr>
+                        ) : (
+                          rows.map((row, ri) => (
+                            <tr key={`${card.id}-${row.key}`} className="border-b border-border/30 hover:bg-accent/20">
+                              <td className="p-2 align-middle sticky left-0 bg-card z-10">
+                                {ri === 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <CardBrandIcon brand={card.brand} className="w-7 h-4" />
+                                    <span className="truncate font-medium">{card.name}</span>
                                   </div>
-                                  <span className="tabular-nums shrink-0 ml-2">{formatCurrency(tx.amount)}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
+                                )}
+                              </td>
+                              <td className="p-2 align-middle">
+                                <span className="truncate">
+                                  {row.description}
+                                  {row.store ? ` / ${row.store}` : ""}
+                                  {row.isInstallment && row.totalInstallments > 1 && (
+                                    <span className="text-muted-foreground ml-1">({row.totalInstallments}x)</span>
+                                  )}
+                                </span>
+                              </td>
+                              {row.perMonth.map((v, mi) => (
+                                <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap">
+                                  {v != null ? formatCurrency(v) : <span className="text-muted-foreground/40">—</span>}
+                                </td>
+                              ))}
+                            </tr>
+                          ))
+                        )}
+                        <tr key={`${card.id}-subtotal`} className="border-b-2 border-border bg-muted/30 font-semibold">
+                          <td className="p-2 sticky left-0 bg-muted/30 z-10 text-right uppercase text-[10px] tracking-wider">Subtotal</td>
+                          <td className="p-2 text-muted-foreground">{card.name}</td>
+                          {monthly.map((m, mi) => (
+                            <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense">
+                              {m.total > 0 ? formatCurrency(m.total) : <span className="text-muted-foreground/40">—</span>}
+                            </td>
+                          ))}
+                        </tr>
+                      </Fragment>
+                    );
+                  })}
+                  <tr className="bg-primary/10 font-bold border-t-2 border-primary">
+                    <td colSpan={2} className="p-2 sticky left-0 bg-primary/10 z-10 uppercase text-[11px] tracking-wider">
+                      Total de todos os cartões
+                    </td>
+                    {cardProjection.months.map((_, mi) => {
+                      const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[mi].total, 0);
+                      return (
+                        <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense">
+                          {total > 0 ? formatCurrency(total) : <span className="text-muted-foreground/40">—</span>}
+                        </td>
                       );
-                    })
-                  )}
-                </div>
-              </div>
-            ))
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
