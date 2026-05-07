@@ -1,8 +1,11 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FinanceProvider } from "../lib/finance-context";
 import { AuthProvider, useAuth } from "../lib/auth-context";
 import { AppSidebar } from "../components/AppSidebar";
+import { PinLockScreen } from "../components/PinLockScreen";
+import { QuickAddFab } from "../components/QuickAddFab";
+import { hasPin, isUnlockedThisSession } from "../lib/security-store";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -47,6 +50,24 @@ export const Route = createRootRoute({
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap",
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-512.png" },
+    ],
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#0a0a0a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Finance Flow" },
+      { title: "Finance Flow — Controle Financeiro Pessoal" },
+      { name: "description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
+      { property: "og:title", content: "Finance Flow — Controle Financeiro Pessoal" },
+      { name: "twitter:title", content: "Finance Flow — Controle Financeiro Pessoal" },
+      { property: "og:description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
+      { name: "twitter:description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
   }),
   shellComponent: RootShell,
