@@ -32,18 +32,6 @@ function NotFoundComponent() {
 
 export const Route = createRootRoute({
   head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Finance Flow — Controle Financeiro Pessoal" },
-      { name: "description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
-      { property: "og:title", content: "Finance Flow — Controle Financeiro Pessoal" },
-      { name: "twitter:title", content: "Finance Flow — Controle Financeiro Pessoal" },
-      { property: "og:description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
-      { name: "twitter:description", content: "Controle pessoal de receitas, despesas fixas e lançamentos no cartão de crédito." },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:type", content: "website" },
-    ],
     links: [
       { rel: "stylesheet", href: appCss },
       {
