@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Trash2, Palette, Download, Upload, Sun, Moon, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStoredThemeMode, setStoredThemeMode, type ThemeMode } from "@/lib/finance-store";
+import { SecuritySettings } from "@/components/SecuritySettings";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -28,7 +29,7 @@ const ACCENT_OPTIONS = [
 
 function SettingsPage() {
   const { state, setAccentColor, deleteCategory, exportBackup, importBackup } = useFinance();
-  const [tab, setTab] = useState<"appearance" | "categories" | "backup">("appearance");
+  const [tab, setTab] = useState<"appearance" | "categories" | "security" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,12 +79,12 @@ function SettingsPage() {
       </header>
 
       <div className="flex gap-1 p-1 bg-muted rounded-lg mb-8 w-fit flex-wrap">
-        {(["appearance", "categories", "backup"] as const).map((t) => (
+        {(["appearance", "categories", "security", "backup"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors ${
               tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
             }`}>
-            {t === "appearance" ? "Aparência" : t === "categories" ? "Categorias" : "Backup"}
+            {t === "appearance" ? "Aparência" : t === "categories" ? "Categorias" : t === "security" ? "Segurança" : "Backup"}
           </button>
         ))}
       </div>
