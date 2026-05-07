@@ -241,7 +241,7 @@ function ReportsPage() {
                     const rows = Array.from(rowMap.values());
 
                     return (
-                      <>
+                      <FragmentWithKey key={card.id}>
                         {rows.length === 0 ? (
                           <tr key={`${card.id}-empty`} className="border-b border-border/50">
                             <td className="p-2 align-middle sticky left-0 bg-card z-10">
