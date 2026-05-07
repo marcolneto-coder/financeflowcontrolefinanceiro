@@ -192,6 +192,8 @@ function SettingsPage() {
         </div>
       )}
 
+      {tab === "security" && <SecuritySettings />}
+
       {tab === "backup" && (
         <div className="space-y-6">
           <div className="glass-card p-4 md:p-6 border-l-4 border-l-primary">
