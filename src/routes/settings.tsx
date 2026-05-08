@@ -1,13 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { useState, useRef, useEffect } from "react";
-import { Trash2, Palette, Download, Upload, Sun, Moon, Cloud, Type, Minus, Plus } from "lucide-react";
+import { Trash2, Palette, Download, Upload, Sun, Moon, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  getStoredThemeMode, setStoredThemeMode, type ThemeMode,
-  getStoredFontSize, setStoredFontSize,
-  FONT_SIZE_DEFAULT, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_STEP,
-} from "@/lib/finance-store";
+import { getStoredThemeMode, setStoredThemeMode, type ThemeMode } from "@/lib/finance-store";
 import { SecuritySettings } from "@/components/SecuritySettings";
 
 export const Route = createFileRoute("/settings")({
