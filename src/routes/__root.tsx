@@ -84,6 +84,8 @@ function RootComponent() {
       const stored = (localStorage.getItem("theme-mode") as "light" | "dark" | null) || "dark";
       if (stored === "light") document.documentElement.classList.add("light");
       else document.documentElement.classList.remove("light");
+      const fs = parseFloat(localStorage.getItem("font-size") || "");
+      if (Number.isFinite(fs)) document.documentElement.style.fontSize = `${fs}px`;
     }
   }, []);
 

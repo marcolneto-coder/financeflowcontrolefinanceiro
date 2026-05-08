@@ -6,6 +6,11 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 import { CardBrandIcon } from "@/components/CardBrandIcon";
+import { Button } from "@/components/ui/button";
+import { FileDown, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export const Route = createFileRoute("/reports")({
   component: ReportsPage,
@@ -86,6 +91,73 @@ function ReportsPage() {
     const grandTotal = cardBlocks.reduce((s, b) => s + b.cardTotal, 0);
     return { months, cardBlocks, grandTotal };
   }, [state.transactions, state.creditCards, current.month, current.year]);
+
+  const buildExportRows = () => {
+    const header = ["Cartão", "Descrição", ...cardProjection.months.map((mo) => `${MONTHS_SHORT[mo.month]}/${String(mo.year).slice(2)}`)];
+    const rows: (string | number)[][] = [header];
+    cardProjection.cardBlocks.forEach(({ card, monthly }) => {
+      const rowMap = new Map<string, { description: string; store?: string; isInstallment: boolean; totalInstallments: number; perMonth: (number | null)[] }>();
+      monthly.forEach((m, mi) => {
+        m.txs.forEach((tx) => {
+          const key = tx.installmentGroupId || `${tx.description}|${tx.store || ""}`;
+          if (!rowMap.has(key)) {
+            rowMap.set(key, {
+              description: tx.description, store: tx.store,
+              isInstallment: tx.isInstallment, totalInstallments: tx.totalInstallments,
+              perMonth: Array(12).fill(null),
+            });
+          }
+          const r = rowMap.get(key)!;
+          r.perMonth[mi] = (r.perMonth[mi] || 0) + tx.amount;
+        });
+      });
+      Array.from(rowMap.values()).forEach((r, ri) => {
+        rows.push([
+          ri === 0 ? card.name : "",
+          r.description + (r.store ? ` / ${r.store}` : "") + (r.isInstallment && r.totalInstallments > 1 ? ` (${r.totalInstallments}x)` : ""),
+          ...r.perMonth.map((v) => (v != null ? Number(v.toFixed(2)) : "")),
+        ]);
+      });
+      rows.push([
+        `Subtotal — ${card.name}`, "",
+        ...monthly.map((m) => (m.total > 0 ? Number(m.total.toFixed(2)) : "")),
+      ]);
+    });
+    rows.push([
+      "TOTAL GERAL", "",
+      ...cardProjection.months.map((_, mi) => {
+        const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[mi].total, 0);
+        return total > 0 ? Number(total.toFixed(2)) : "";
+      }),
+    ]);
+    return rows;
+  };
+
+  const exportExcel = () => {
+    const rows = buildExportRows();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Projeção Cartões");
+    XLSX.writeFile(wb, `projecao-cartoes-${new Date().toISOString().split("T")[0]}.xlsx`);
+  };
+
+  const exportPdf = () => {
+    const rows = buildExportRows();
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("Projeção 12 Meses — Cartões", 40, 30);
+    autoTable(doc, {
+      head: [rows[0] as string[]],
+      body: rows.slice(1).map((r) =>
+        r.map((c) => (typeof c === "number" ? formatCurrency(c) : String(c)))
+      ),
+      startY: 50,
+      styles: { fontSize: 7, cellPadding: 3 },
+      headStyles: { fillColor: [60, 60, 80] },
+      columnStyles: { 0: { fontStyle: "bold" } },
+    });
+    doc.save(`projecao-cartoes-${new Date().toISOString().split("T")[0]}.pdf`);
+  };
 
   return (
     <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8">
@@ -192,9 +264,21 @@ function ReportsPage() {
                   A partir de {MONTHS_FULL[cardProjection.months[0]?.month]}/{cardProjection.months[0]?.year}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">Total geral (12 meses)</p>
-                <p className="text-xl font-semibold tabular-nums text-expense">{formatCurrency(cardProjection.grandTotal)}</p>
+              <div className="flex flex-col items-start sm:items-end gap-2">
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Total geral (12 meses)</p>
+                  <p className="text-xl font-semibold tabular-nums text-expense">{formatCurrency(cardProjection.grandTotal)}</p>
+                </div>
+                {state.creditCards.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={exportExcel}>
+                      <FileSpreadsheet className="size-4" /> Excel
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportPdf}>
+                      <FileDown className="size-4" /> PDF
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

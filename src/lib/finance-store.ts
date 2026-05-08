@@ -90,6 +90,29 @@ export function setStoredThemeMode(mode: ThemeMode) {
   applyThemeMode(mode);
 }
 
+// Font size scaling (in pt). Default = 16pt (browser default). Step = 0.5pt.
+export const FONT_SIZE_DEFAULT = 16;
+export const FONT_SIZE_MIN = 12;
+export const FONT_SIZE_MAX = 22;
+export const FONT_SIZE_STEP = 0.5;
+
+export function applyFontSize(size: number) {
+  if (typeof document === "undefined") return;
+  document.documentElement.style.fontSize = `${size}px`;
+}
+
+export function getStoredFontSize(): number {
+  if (typeof localStorage === "undefined") return FONT_SIZE_DEFAULT;
+  const v = parseFloat(localStorage.getItem("font-size") || "");
+  return Number.isFinite(v) ? v : FONT_SIZE_DEFAULT;
+}
+
+export function setStoredFontSize(size: number) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem("font-size", String(size));
+  applyFontSize(size);
+}
+
 export const ACCENT_COLORS: Record<string, { primary: string; ring: string; sidebarPrimary: string }> = {
   blue: { primary: "oklch(0.7 0.12 220)", ring: "oklch(0.7 0.12 220)", sidebarPrimary: "oklch(0.7 0.12 220)" },
   violet: { primary: "oklch(0.65 0.15 300)", ring: "oklch(0.65 0.15 300)", sidebarPrimary: "oklch(0.65 0.15 300)" },

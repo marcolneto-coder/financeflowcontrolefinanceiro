@@ -95,11 +95,20 @@ function CardsPage() {
                       {formatCurrency(spent)} / {formatCurrency(card.limit)}
                     </span>
                   </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all"
-                      style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: pct > 80 ? "var(--expense)" : card.color }}
+                      style={{
+                        width: `${Math.min(pct, 100)}%`,
+                        backgroundColor: pct >= 100 ? "var(--expense)" : pct >= 80 ? "#f59e0b" : card.color,
+                      }}
                     />
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className={`text-xs font-medium ${pct >= 100 ? "text-expense" : pct >= 80 ? "text-amber-500" : "text-muted-foreground"}`}>
+                      {pct.toFixed(1)}% utilizado
+                      {pct >= 100 ? " ⚠ limite excedido" : pct >= 80 ? " ⚠ atenção" : ""}
+                    </span>
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mt-2">
                     <span>Fecha dia {card.closingDay}</span>
