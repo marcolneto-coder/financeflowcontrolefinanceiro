@@ -32,9 +32,9 @@ function DashboardPage() {
     month === 0 ? 11 : month - 1
   );
 
-  const balanceDiff = prevSummary.balance !== 0
-    ? ((summary.balance - prevSummary.balance) / Math.abs(prevSummary.balance)) * 100
-    : 0;
+  const pctDiff = (curr: number, prev: number) =>
+    prev !== 0 ? ((curr - prev) / Math.abs(prev)) * 100 : 0;
+  const balanceDiff = pctDiff(summary.balance, prevSummary.balance);
 
   const recentTx = [...summary.transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -82,8 +82,8 @@ function DashboardPage() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
-        <SummaryCard label="Receitas" value={summary.income} icon={<TrendingUp className="size-5" />} colorClass="text-income" />
-        <SummaryCard label="Despesas" value={summary.expenses} icon={<TrendingDown className="size-5" />} colorClass="text-expense" />
+        <SummaryCard label="Receitas" value={summary.income} icon={<TrendingUp className="size-5" />} colorClass="text-income" diff={pctDiff(summary.income, prevSummary.income)} />
+        <SummaryCard label="Despesas" value={summary.expenses} icon={<TrendingDown className="size-5" />} colorClass="text-expense" diff={pctDiff(summary.expenses, prevSummary.expenses)} invertColor />
         <SummaryCard label="Saldo" value={summary.balance} icon={<Wallet className="size-5" />} colorClass="text-primary" diff={balanceDiff} />
       </div>
 
@@ -158,9 +158,12 @@ function DashboardPage() {
   );
 }
 
-function SummaryCard({ label, value, icon, colorClass, diff }: {
-  label: string; value: number; icon: React.ReactNode; colorClass: string; diff?: number;
+function SummaryCard({ label, value, icon, colorClass, diff, invertColor }: {
+  label: string; value: number; icon: React.ReactNode; colorClass: string; diff?: number; invertColor?: boolean;
 }) {
+  // For expenses, an increase (diff > 0) is "bad" → expense color
+  const positiveIsGood = !invertColor;
+  const isGood = positiveIsGood ? (diff ?? 0) > 0 : (diff ?? 0) < 0;
   return (
     <div className="glass-card p-4 md:p-6">
       <div className="flex justify-between items-start mb-3 md:mb-4">
@@ -169,7 +172,7 @@ function SummaryCard({ label, value, icon, colorClass, diff }: {
       </div>
       <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(value)}</p>
       {diff !== undefined && diff !== 0 && (
-        <p className={`text-xs mt-2 flex items-center gap-1 ${diff > 0 ? "text-income" : "text-expense"}`}>
+        <p className={`text-xs mt-2 flex items-center gap-1 ${isGood ? "text-income" : "text-expense"}`}>
           {diff > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
           {Math.abs(diff).toFixed(1)}% vs mês anterior
         </p>
