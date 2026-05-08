@@ -32,25 +32,21 @@ function SettingsPage() {
   const [tab, setTab] = useState<"appearance" | "categories" | "security" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
-  const [fontSize, setFontSize] = useState<number>(FONT_SIZE_DEFAULT);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setThemeMode(getStoredThemeMode());
-    setFontSize(getStoredFontSize());
+    // Reset font size to browser default (undo previous font-size feature)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("font-size");
+      document.documentElement.style.fontSize = "";
+    }
   }, []);
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
     setStoredThemeMode(mode);
   };
-
-  const changeFont = (delta: number) => {
-    const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, +(fontSize + delta).toFixed(1)));
-    setFontSize(next);
-    setStoredFontSize(next);
-  };
-  const resetFont = () => { setFontSize(FONT_SIZE_DEFAULT); setStoredFontSize(FONT_SIZE_DEFAULT); };
 
   const incomeCategories = state.categories.filter((c) => c.type === "income");
   const expenseCategories = state.categories.filter((c) => c.type === "expense");
