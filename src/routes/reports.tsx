@@ -264,9 +264,21 @@ function ReportsPage() {
                   A partir de {MONTHS_FULL[cardProjection.months[0]?.month]}/{cardProjection.months[0]?.year}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">Total geral (12 meses)</p>
-                <p className="text-xl font-semibold tabular-nums text-expense">{formatCurrency(cardProjection.grandTotal)}</p>
+              <div className="flex flex-col items-start sm:items-end gap-2">
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Total geral (12 meses)</p>
+                  <p className="text-xl font-semibold tabular-nums text-expense">{formatCurrency(cardProjection.grandTotal)}</p>
+                </div>
+                {state.creditCards.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={exportExcel}>
+                      <FileSpreadsheet className="size-4" /> Excel
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportPdf}>
+                      <FileDown className="size-4" /> PDF
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
