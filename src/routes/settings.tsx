@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { useState, useRef, useEffect } from "react";
-import { Trash2, Palette, Download, Upload, Sun, Moon, Cloud } from "lucide-react";
+import { Trash2, Palette, Download, Upload, Sun, Moon, Cloud, Type, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getStoredThemeMode, setStoredThemeMode, type ThemeMode } from "@/lib/finance-store";
+import {
+  getStoredThemeMode, setStoredThemeMode, type ThemeMode,
+  getStoredFontSize, setStoredFontSize,
+  FONT_SIZE_DEFAULT, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_STEP,
+} from "@/lib/finance-store";
 import { SecuritySettings } from "@/components/SecuritySettings";
 
 export const Route = createFileRoute("/settings")({
@@ -32,16 +36,25 @@ function SettingsPage() {
   const [tab, setTab] = useState<"appearance" | "categories" | "security" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
+  const [fontSize, setFontSize] = useState<number>(FONT_SIZE_DEFAULT);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setThemeMode(getStoredThemeMode());
+    setFontSize(getStoredFontSize());
   }, []);
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
     setStoredThemeMode(mode);
   };
+
+  const changeFont = (delta: number) => {
+    const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, +(fontSize + delta).toFixed(1)));
+    setFontSize(next);
+    setStoredFontSize(next);
+  };
+  const resetFont = () => { setFontSize(FONT_SIZE_DEFAULT); setStoredFontSize(FONT_SIZE_DEFAULT); };
 
   const incomeCategories = state.categories.filter((c) => c.type === "income");
   const expenseCategories = state.categories.filter((c) => c.type === "expense");
