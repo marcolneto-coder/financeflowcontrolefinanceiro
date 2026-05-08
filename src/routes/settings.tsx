@@ -131,6 +131,34 @@ function SettingsPage() {
 
           <div>
             <div className="flex items-center gap-2 mb-4">
+              <Type className="size-4 text-muted-foreground" />
+              <h2 className="text-base md:text-lg font-medium">Tamanho da fonte</h2>
+            </div>
+            <div className="glass-card p-4 md:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <Button variant="outline" size="sm" onClick={() => changeFont(-FONT_SIZE_STEP)} disabled={fontSize <= FONT_SIZE_MIN}>
+                  <Minus className="size-4" />
+                </Button>
+                <div className="flex-1 text-center">
+                  <p className="text-2xl font-semibold tabular-nums">{fontSize.toFixed(1)} pt</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Min {FONT_SIZE_MIN}pt · Max {FONT_SIZE_MAX}pt · Passo {FONT_SIZE_STEP}pt
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => changeFont(FONT_SIZE_STEP)} disabled={fontSize >= FONT_SIZE_MAX}>
+                  <Plus className="size-4" />
+                </Button>
+              </div>
+              {fontSize !== FONT_SIZE_DEFAULT && (
+                <button onClick={resetFont} className="mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center">
+                  Restaurar padrão ({FONT_SIZE_DEFAULT}pt)
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-4">
               <Palette className="size-4 text-muted-foreground" />
               <h2 className="text-base md:text-lg font-medium">Cor de destaque</h2>
             </div>
