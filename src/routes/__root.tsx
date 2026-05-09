@@ -4,7 +4,7 @@ import { FinanceProvider } from "../lib/finance-context";
 import { AuthProvider, useAuth } from "../lib/auth-context";
 import { AppSidebar } from "../components/AppSidebar";
 import { PinLockScreen } from "../components/PinLockScreen";
-import { QuickAddFab } from "../components/QuickAddFab";
+
 import { hasPin, isUnlockedThisSession } from "../lib/security-store";
 import appCss from "../styles.css?url";
 
@@ -129,7 +129,7 @@ function AuthGate() {
           <main className="flex-1 overflow-y-auto">
             <Outlet />
           </main>
-          <QuickAddFab />
+          
         </div>
       </AppLockGate>
     </FinanceProvider>

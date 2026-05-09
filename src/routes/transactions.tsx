@@ -230,7 +230,7 @@ function TransactionsPage() {
                 <p className={`text-xs md:text-sm font-semibold tabular-nums whitespace-nowrap ${isIncome ? "text-income" : "text-expense"}`}>
                   {isIncome ? "+" : "-"} {formatCurrency(tx.amount)}
                 </p>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                <div className="flex gap-1">
                   <button onClick={() => duplicateToNextMonth(tx.id)} title="Duplicar para próximo mês"
                     className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
                     <Copy className="size-3.5" />
