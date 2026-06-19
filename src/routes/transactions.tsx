@@ -68,11 +68,11 @@ function TransactionsPage() {
         return true;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyInstallment, searchAll, hasActiveSearch]);
+  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment, searchAll, hasActiveSearch]);
 
   const clearSearch = () => {
     setQ(""); setFromDate(""); setToDate(""); setCardFilter(""); setCategoryFilter("");
-    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyInstallment(false);
+    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyFixedNoCard(false); setOnlyInstallment(false);
   };
 
   const goMonth = (dir: number) => {
