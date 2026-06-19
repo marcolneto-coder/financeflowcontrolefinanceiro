@@ -292,8 +292,8 @@ function ReportsPage() {
               <table className="w-full text-xs border-collapse min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border bg-muted/40">
-                    <th className="text-left p-2 font-semibold sticky left-0 bg-muted/40 z-10 min-w-[120px]">Cartão</th>
-                    <th className="text-left p-2 font-semibold min-w-[200px]">Descrição</th>
+                    <th className="text-left p-2 font-semibold sticky left-0 bg-muted/40 z-20 min-w-[120px] w-[120px]">Cartão</th>
+                    <th className="text-left p-2 font-semibold sticky left-[120px] bg-muted/40 z-20 min-w-[200px] w-[200px]">Descrição</th>
                     {cardProjection.months.map((mo, i) => (
                       <th key={i} className="text-right p-2 font-semibold whitespace-nowrap">
                         {MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}
@@ -328,18 +328,21 @@ function ReportsPage() {
                       <Fragment key={card.id}>
                         {rows.length === 0 ? (
                           <tr key={`${card.id}-empty`} className="border-b border-border/50">
-                            <td className="p-2 align-middle sticky left-0 bg-card z-10">
+                            <td className="p-2 align-middle sticky left-0 bg-card z-10 w-[120px]">
                               <div className="flex items-center gap-2">
                                 <CardBrandIcon brand={card.brand} className="w-7 h-4" />
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td colSpan={13} className="p-2 text-muted-foreground italic">Sem lançamentos</td>
+                            <td className="p-2 sticky left-[120px] bg-card z-10 w-[200px] text-muted-foreground italic">Sem lançamentos</td>
+                            {cardProjection.months.map((_, mi) => (
+                              <td key={mi} className="p-2" />
+                            ))}
                           </tr>
                         ) : (
                           rows.map((row, ri) => (
                             <tr key={`${card.id}-${row.key}`} className="border-b border-border/30 hover:bg-accent/20">
-                              <td className="p-2 align-middle sticky left-0 bg-card z-10">
+                              <td className="p-2 align-middle sticky left-0 bg-card z-10 w-[120px]">
                                 {ri === 0 && (
                                   <div className="flex items-center gap-2">
                                     <CardBrandIcon brand={card.brand} className="w-7 h-4" />
@@ -347,7 +350,7 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle">
+                              <td className="p-2 align-middle sticky left-[120px] bg-card z-10 w-[200px]">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
@@ -365,8 +368,8 @@ function ReportsPage() {
                           ))
                         )}
                         <tr key={`${card.id}-subtotal`} className="border-b-2 border-border bg-muted/30 font-semibold">
-                          <td className="p-2 sticky left-0 bg-muted/30 z-10 text-right uppercase text-[10px] tracking-wider">Subtotal</td>
-                          <td className="p-2 text-muted-foreground">{card.name}</td>
+                          <td className="p-2 sticky left-0 bg-muted/30 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider">Subtotal</td>
+                          <td className="p-2 sticky left-[120px] bg-muted/30 z-10 w-[200px] text-muted-foreground">{card.name}</td>
                           {monthly.map((m, mi) => (
                             <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense">
                               {m.total > 0 ? formatCurrency(m.total) : <span className="text-muted-foreground/40">—</span>}
@@ -377,8 +380,11 @@ function ReportsPage() {
                     );
                   })}
                   <tr className="bg-primary/10 font-bold border-t-2 border-primary">
-                    <td colSpan={2} className="p-2 sticky left-0 bg-primary/10 z-10 uppercase text-[11px] tracking-wider">
-                      Total de todos os cartões
+                    <td className="p-2 sticky left-0 bg-primary/10 z-10 w-[120px] uppercase text-[11px] tracking-wider">
+                      Total
+                    </td>
+                    <td className="p-2 sticky left-[120px] bg-primary/10 z-10 w-[200px] uppercase text-[11px] tracking-wider text-muted-foreground">
+                      Todos os cartões
                     </td>
                     {cardProjection.months.map((_, mi) => {
                       const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[mi].total, 0);
