@@ -41,9 +41,10 @@ function TransactionsPage() {
   const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
   const [onlyFixed, setOnlyFixed] = useState(false);
+  const [onlyFixedNoCard, setOnlyFixedNoCard] = useState(false);
   const [onlyInstallment, setOnlyInstallment] = useState(false);
 
-  const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyInstallment;
+  const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyFixedNoCard || onlyInstallment;
 
   const visibleTx = useMemo(() => {
     return state.transactions
@@ -62,15 +63,16 @@ function TransactionsPage() {
         if (minValue && t.amount < parseFloat(minValue)) return false;
         if (maxValue && t.amount > parseFloat(maxValue)) return false;
         if (onlyFixed && !t.isFixed) return false;
+        if (onlyFixedNoCard && (!t.isFixed || t.creditCardId)) return false;
         if (onlyInstallment && !t.isInstallment) return false;
         return true;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyInstallment, searchAll, hasActiveSearch]);
+  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment, searchAll, hasActiveSearch]);
 
   const clearSearch = () => {
     setQ(""); setFromDate(""); setToDate(""); setCardFilter(""); setCategoryFilter("");
-    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyInstallment(false);
+    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyFixedNoCard(false); setOnlyInstallment(false);
   };
 
   const goMonth = (dir: number) => {
@@ -162,6 +164,10 @@ function TransactionsPage() {
             <label className="flex items-center gap-2 text-xs cursor-pointer self-end">
               <input type="checkbox" checked={onlyFixed} onChange={(e) => setOnlyFixed(e.target.checked)} className="size-3.5 accent-primary" />
               Apenas fixas
+            </label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer self-end">
+              <input type="checkbox" checked={onlyFixedNoCard} onChange={(e) => setOnlyFixedNoCard(e.target.checked)} className="size-3.5 accent-primary" />
+              Fixas sem cartão
             </label>
             <label className="flex items-center gap-2 text-xs cursor-pointer self-end">
               <input type="checkbox" checked={onlyInstallment} onChange={(e) => setOnlyInstallment(e.target.checked)} className="size-3.5 accent-primary" />
