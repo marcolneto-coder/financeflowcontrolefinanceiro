@@ -383,13 +383,13 @@ function ReportsPage() {
                     <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-neutral-950 text-zinc-100">
                       Total
                     </td>
-                    <td className="p-2 sticky left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider text-zinc-400 bg-zinc-900">
+                    <td className="p-2 sticky left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider text-zinc-100 bg-zinc-800">
                       Todos os cartões
                     </td>
                     {cardProjection.months.map((_, mi) => {
                       const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[mi].total, 0);
                       return (
-                        <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-zinc-800/40">
+                        <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-zinc-900/40">
                           {total > 0 ? formatCurrency(total) : <span className="text-muted-foreground/40">—</span>}
                         </td>
                       );
