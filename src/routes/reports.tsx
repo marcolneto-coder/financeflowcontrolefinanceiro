@@ -369,9 +369,9 @@ function ReportsPage() {
                         )}
                         <tr key={`${card.id}-subtotal`} className="border-b-2 border-border font-semibold">
                           <td className="p-2 sticky left-0 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider bg-neutral-950 text-zinc-300">Subtotal</td>
-                          <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-zinc-900 text-zinc-400">{card.name}</td>
+                          <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-zinc-800 text-zinc-300">{card.name}</td>
                           {monthly.map((m, mi) => (
-                            <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-zinc-800/30">
+                            <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-zinc-900/30">
                               {m.total > 0 ? formatCurrency(m.total) : <span className="text-muted-foreground/40">—</span>}
                             </td>
                           ))}
