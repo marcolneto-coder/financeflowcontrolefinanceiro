@@ -350,7 +350,7 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-zinc-900 text-zinc-200">
+                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-zinc-800 text-zinc-100">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
@@ -360,7 +360,7 @@ function ReportsPage() {
                                 </span>
                               </td>
                               {row.perMonth.map((v, mi) => (
-                                <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap bg-zinc-800/20 text-zinc-300">
+                                <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap bg-zinc-900/20 text-zinc-300">
                                   {v != null ? formatCurrency(v) : <span className="text-muted-foreground/40">—</span>}
                                 </td>
                               ))}
