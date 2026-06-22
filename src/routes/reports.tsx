@@ -334,9 +334,9 @@ function ReportsPage() {
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td className="p-2 sticky left-[120px] z-10 w-[200px] text-zinc-400 bg-zinc-900 italic">Sem lançamentos</td>
+                            <td className="p-2 sticky left-[120px] z-10 w-[200px] text-zinc-300 bg-zinc-800 italic">Sem lançamentos</td>
                             {cardProjection.months.map((_, mi) => (
-                              <td key={mi} className="p-2 bg-zinc-800/20" />
+                              <td key={mi} className="p-2 bg-zinc-900/20" />
                             ))}
                           </tr>
                         ) : (
