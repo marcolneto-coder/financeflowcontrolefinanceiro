@@ -293,9 +293,9 @@ function ReportsPage() {
                 <thead>
                   <tr className="border-b border-border bg-muted/40">
                     <th className="text-left p-2 font-semibold sticky left-0 z-20 min-w-[120px] w-[120px] bg-neutral-950 text-zinc-100">Cartão</th>
-                    <th className="text-left p-2 font-semibold sticky left-[120px] z-20 min-w-[200px] w-[200px] bg-zinc-900 text-zinc-300">Descrição</th>
+                    <th className="text-left p-2 font-semibold sticky left-[120px] z-20 min-w-[200px] w-[200px] bg-zinc-800 text-zinc-100">Descrição</th>
                     {cardProjection.months.map((mo, i) => (
-                      <th key={i} className="text-right p-2 font-semibold whitespace-nowrap bg-zinc-800/50 text-zinc-400">
+                      <th key={i} className="text-right p-2 font-semibold whitespace-nowrap bg-zinc-900/50 text-zinc-400">
                         {MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}
                       </th>
                     ))}
