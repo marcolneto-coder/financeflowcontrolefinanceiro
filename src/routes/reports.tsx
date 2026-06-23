@@ -291,11 +291,11 @@ function ReportsPage() {
             <div className="glass-card p-2 md:p-4 overflow-x-auto">
               <table className="w-full text-xs border-collapse min-w-[900px]">
                 <thead>
-                  <tr className="border-b border-border bg-muted/40">
-                    <th className="text-left p-2 font-semibold sticky left-0 z-20 min-w-[120px] w-[120px] bg-neutral-950 text-zinc-100">Cartão</th>
-                    <th className="text-left p-2 font-semibold sticky left-[120px] z-20 min-w-[200px] w-[200px] bg-zinc-800 text-zinc-100">Descrição</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-2 font-semibold sticky left-0 z-20 min-w-[120px] w-[120px] bg-sidebar text-sidebar-foreground">Cartão</th>
+                    <th className="text-left p-2 font-semibold sticky left-[120px] z-20 min-w-[200px] w-[200px] bg-muted text-foreground">Descrição</th>
                     {cardProjection.months.map((mo, i) => (
-                      <th key={i} className="text-right p-2 font-semibold whitespace-nowrap bg-zinc-900/50 text-zinc-400">
+                      <th key={i} className="text-right p-2 font-semibold whitespace-nowrap bg-primary/10 text-foreground">
                         {MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}
                       </th>
                     ))}
@@ -328,21 +328,21 @@ function ReportsPage() {
                       <Fragment key={card.id}>
                         {rows.length === 0 ? (
                           <tr key={`${card.id}-empty`} className="border-b border-border/50">
-                            <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-neutral-950 text-zinc-100">
+                            <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-sidebar text-sidebar-foreground">
                               <div className="flex items-center gap-2">
                                 <CardBrandIcon brand={card.brand} className="w-7 h-4" />
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td className="p-2 sticky left-[120px] z-10 w-[200px] text-zinc-300 bg-zinc-800 italic">Sem lançamentos</td>
+                            <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-muted text-muted-foreground italic">Sem lançamentos</td>
                             {cardProjection.months.map((_, mi) => (
-                              <td key={mi} className="p-2 bg-zinc-900/20" />
+                              <td key={mi} className="p-2 bg-card/40" />
                             ))}
                           </tr>
                         ) : (
                           rows.map((row, ri) => (
-                            <tr key={`${card.id}-${row.key}`} className="border-b border-border/30 hover:bg-zinc-800/30">
-                              <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-neutral-950 text-zinc-100">
+                            <tr key={`${card.id}-${row.key}`} className="border-b border-border/30 hover:bg-accent/40">
+                              <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-sidebar text-sidebar-foreground">
                                 {ri === 0 && (
                                   <div className="flex items-center gap-2">
                                     <CardBrandIcon brand={card.brand} className="w-7 h-4" />
@@ -350,7 +350,7 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-zinc-800 text-zinc-100">
+                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-muted text-foreground">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
@@ -360,7 +360,7 @@ function ReportsPage() {
                                 </span>
                               </td>
                               {row.perMonth.map((v, mi) => (
-                                <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap bg-zinc-900/20 text-zinc-300">
+                                <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap bg-card/40 text-foreground">
                                   {v != null ? formatCurrency(v) : <span className="text-muted-foreground/40">—</span>}
                                 </td>
                               ))}
@@ -368,10 +368,10 @@ function ReportsPage() {
                           ))
                         )}
                         <tr key={`${card.id}-subtotal`} className="border-b-2 border-border font-semibold">
-                          <td className="p-2 sticky left-0 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider bg-neutral-950 text-zinc-300">Subtotal</td>
-                          <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-zinc-800 text-zinc-300">{card.name}</td>
+                          <td className="p-2 sticky left-0 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider bg-sidebar text-sidebar-foreground">Subtotal</td>
+                          <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-muted text-foreground">{card.name}</td>
                           {monthly.map((m, mi) => (
-                            <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-zinc-900/30">
+                            <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-primary/10">
                               {m.total > 0 ? formatCurrency(m.total) : <span className="text-muted-foreground/40">—</span>}
                             </td>
                           ))}
@@ -380,16 +380,16 @@ function ReportsPage() {
                     );
                   })}
                   <tr className="font-bold border-t-2 border-primary">
-                    <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-neutral-950 text-zinc-100">
+                    <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-sidebar text-sidebar-foreground">
                       Total
                     </td>
-                    <td className="p-2 sticky left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider text-zinc-100 bg-zinc-800">
+                    <td className="p-2 sticky left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider bg-muted text-foreground">
                       Todos os cartões
                     </td>
                     {cardProjection.months.map((_, mi) => {
                       const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[mi].total, 0);
                       return (
-                        <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-zinc-900/40">
+                        <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-primary/20">
                           {total > 0 ? formatCurrency(total) : <span className="text-muted-foreground/40">—</span>}
                         </td>
                       );
