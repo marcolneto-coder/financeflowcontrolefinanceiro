@@ -300,18 +300,34 @@ function ReportsPage() {
           <div className="glass-card p-4 md:p-6">
             <div className="flex flex-col sm:flex-row justify-between gap-3">
               <div>
-                <h2 className="text-base md:text-lg font-medium">Projeção 12 Meses — Cartões</h2>
+                <h2 className="text-base md:text-lg font-medium">Projeção — Cartões</h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  A partir de {MONTHS_FULL[cardProjection.months[0]?.month]}/{cardProjection.months[0]?.year}
+                  {cardProjection.months[0] && (
+                    <>De {MONTHS_FULL[cardProjection.months[0].month]}/{cardProjection.months[0].year} até {MONTHS_FULL[cardProjection.months[cardProjection.months.length - 1].month]}/{cardProjection.months[cardProjection.months.length - 1].year}</>
+                  )}
                 </p>
               </div>
               <div className="flex flex-col items-start sm:items-end gap-2">
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Total geral (12 meses)</p>
+                  <p className="text-xs text-muted-foreground">Total geral</p>
                   <p className="text-xl font-semibold tabular-nums text-expense">{formatCurrency(cardProjection.grandTotal)}</p>
                 </div>
                 {state.creditCards.length > 0 && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setHidePast((v) => !v)}
+                      title={hidePast ? "Mostrar meses passados" : "Ocultar meses passados"}
+                    >
+                      {hidePast ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                      {hidePast ? "Mostrar passados" : "Ocultar passados"}
+                    </Button>
+                    {hiddenCols.size > 0 && (
+                      <Button variant="outline" size="sm" onClick={() => setHiddenCols(new Set())}>
+                        Restaurar colunas ({hiddenCols.size})
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" onClick={exportExcel}>
                       <FileSpreadsheet className="size-4" /> Excel
                     </Button>
@@ -333,22 +349,53 @@ function ReportsPage() {
               <table className="w-full text-xs border-collapse min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left p-2 font-semibold sticky left-0 z-20 min-w-[120px] w-[120px] bg-sidebar text-sidebar-foreground">Cartão</th>
-                    <th className="text-left p-2 font-semibold sticky left-[120px] z-20 min-w-[200px] w-[200px] bg-muted text-foreground">Descrição</th>
-                    {cardProjection.months.map((mo, i) => (
-                      <th key={i} className="text-right p-2 font-semibold whitespace-nowrap bg-primary/10 text-foreground">
-                        {MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}
-                      </th>
-                    ))}
+                    <th className="text-left p-2 font-semibold sticky left-0 z-20 min-w-[120px] w-[120px] bg-primary/30 text-foreground">Cartão</th>
+                    <th className="text-left p-2 font-semibold sticky left-[120px] z-20 min-w-[200px] w-[200px] bg-primary/20 text-foreground">Descrição</th>
+                    {visibleIdx.map((i) => {
+                      const mo = cardProjection.months[i];
+                      return (
+                        <th
+                          key={mo.key}
+                          className={`text-right p-2 font-semibold whitespace-nowrap text-foreground ${mo.isPast ? "bg-primary/5" : "bg-primary/10"}`}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            <span>{MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}</span>
+                            <button
+                              type="button"
+                              title="Ocultar coluna"
+                              onClick={() =>
+                                setHiddenCols((prev) => {
+                                  const n = new Set(prev);
+                                  n.add(mo.key);
+                                  return n;
+                                })
+                              }
+                              className="opacity-50 hover:opacity-100 transition-opacity"
+                            >
+                              <EyeOff className="size-3" />
+                            </button>
+                          </div>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
-                  {cardProjection.cardBlocks.map(({ card, monthly, cardTotal }) => {
-                    // collect unique transaction "rows" by description+installmentGroup across months
-                    const rowMap = new Map<string, { key: string; description: string; store?: string; isInstallment: boolean; totalInstallments: number; perMonth: (number | null)[] }>();
+                  {cardProjection.cardBlocks.map(({ card, monthly }) => {
+                    type Row = {
+                      key: string;
+                      description: string;
+                      store?: string;
+                      isInstallment: boolean;
+                      totalInstallments: number;
+                      perMonth: ({ amount: number; txIds: string[] } | null)[];
+                    };
+                    const rowMap = new Map<string, Row>();
                     monthly.forEach((m, mi) => {
                       m.txs.forEach((tx) => {
-                        const key = tx.installmentGroupId || `${tx.description}|${tx.store || ""}`;
+                        const key = tx.installmentGroupId
+                          ? `inst:${tx.installmentGroupId}`
+                          : `single:${tx.description}|${tx.store || ""}|${tx.amount}`;
                         if (!rowMap.has(key)) {
                           rowMap.set(key, {
                             key,
@@ -356,34 +403,40 @@ function ReportsPage() {
                             store: tx.store,
                             isInstallment: tx.isInstallment,
                             totalInstallments: tx.totalInstallments,
-                            perMonth: Array(12).fill(null),
+                            perMonth: Array(cardProjection.months.length).fill(null),
                           });
                         }
                         const row = rowMap.get(key)!;
-                        row.perMonth[mi] = (row.perMonth[mi] || 0) + tx.amount;
+                        const cell = row.perMonth[mi] || { amount: 0, txIds: [] };
+                        cell.amount += tx.amount;
+                        cell.txIds.push(tx.id);
+                        row.perMonth[mi] = cell;
                       });
                     });
-                    const rows = Array.from(rowMap.values());
+                    // hide rows whose visible cells are all empty
+                    const rows = Array.from(rowMap.values()).filter((r) =>
+                      visibleIdx.some((i) => r.perMonth[i] != null)
+                    );
 
                     return (
                       <Fragment key={card.id}>
                         {rows.length === 0 ? (
                           <tr key={`${card.id}-empty`} className="border-b border-border/50">
-                            <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-sidebar text-sidebar-foreground">
+                            <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-primary/30 text-foreground">
                               <div className="flex items-center gap-2">
                                 <CardBrandIcon brand={card.brand} className="w-7 h-4" />
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-muted text-muted-foreground italic">Sem lançamentos</td>
-                            {cardProjection.months.map((_, mi) => (
-                              <td key={mi} className="p-2 bg-card/40" />
+                            <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-primary/20 text-muted-foreground italic">Sem lançamentos</td>
+                            {visibleIdx.map((i) => (
+                              <td key={i} className="p-2 bg-primary/5" />
                             ))}
                           </tr>
                         ) : (
                           rows.map((row, ri) => (
                             <tr key={`${card.id}-${row.key}`} className="border-b border-border/30 hover:bg-accent/40">
-                              <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-sidebar text-sidebar-foreground">
+                              <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-primary/30 text-foreground">
                                 {ri === 0 && (
                                   <div className="flex items-center gap-2">
                                     <CardBrandIcon brand={card.brand} className="w-7 h-4" />
@@ -391,7 +444,7 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-muted text-foreground">
+                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-primary/20 text-foreground">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
@@ -400,37 +453,58 @@ function ReportsPage() {
                                   )}
                                 </span>
                               </td>
-                              {row.perMonth.map((v, mi) => (
-                                <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap bg-card/40 text-foreground">
-                                  {v != null ? formatCurrency(v) : <span className="text-muted-foreground/40">—</span>}
-                                </td>
-                              ))}
+                              {visibleIdx.map((i) => {
+                                const cell = row.perMonth[i];
+                                const mo = cardProjection.months[i];
+                                return (
+                                  <td
+                                    key={i}
+                                    className={`text-right p-0 tabular-nums whitespace-nowrap text-foreground ${mo.isPast ? "bg-primary/5" : "bg-primary/10"}`}
+                                  >
+                                    {cell ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => goToTransaction(mo.year, mo.month, cell.txIds[0])}
+                                        className="w-full h-full p-2 text-right hover:bg-primary/20 transition-colors cursor-pointer"
+                                        title="Ver transação"
+                                      >
+                                        {formatCurrency(cell.amount)}
+                                      </button>
+                                    ) : (
+                                      <span className="block p-2 text-muted-foreground/40">—</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           ))
                         )}
                         <tr key={`${card.id}-subtotal`} className="border-b-2 border-border font-semibold">
-                          <td className="p-2 sticky left-0 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider bg-sidebar text-sidebar-foreground">Subtotal</td>
-                          <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-muted text-foreground">{card.name}</td>
-                          {monthly.map((m, mi) => (
-                            <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-primary/10">
-                              {m.total > 0 ? formatCurrency(m.total) : <span className="text-muted-foreground/40">—</span>}
-                            </td>
-                          ))}
+                          <td className="p-2 sticky left-0 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider bg-primary/40 text-foreground">Subtotal</td>
+                          <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-primary/30 text-foreground">{card.name}</td>
+                          {visibleIdx.map((i) => {
+                            const m = monthly[i];
+                            return (
+                              <td key={i} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-primary/15">
+                                {m.total > 0 ? formatCurrency(m.total) : <span className="text-muted-foreground/40">—</span>}
+                              </td>
+                            );
+                          })}
                         </tr>
                       </Fragment>
                     );
                   })}
                   <tr className="font-bold border-t-2 border-primary">
-                    <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-sidebar text-sidebar-foreground">
+                    <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-primary/50 text-foreground">
                       Total
                     </td>
-                    <td className="p-2 sticky left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider bg-muted text-foreground">
+                    <td className="p-2 sticky left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider bg-primary/40 text-foreground">
                       Todos os cartões
                     </td>
-                    {cardProjection.months.map((_, mi) => {
-                      const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[mi].total, 0);
+                    {visibleIdx.map((i) => {
+                      const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[i].total, 0);
                       return (
-                        <td key={mi} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-primary/20">
+                        <td key={i} className="text-right p-2 tabular-nums whitespace-nowrap text-expense bg-primary/25">
                           {total > 0 ? formatCurrency(total) : <span className="text-muted-foreground/40">—</span>}
                         </td>
                       );
@@ -440,6 +514,9 @@ function ReportsPage() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
         </div>
       )}
     </div>
