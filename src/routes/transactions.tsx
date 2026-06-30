@@ -243,8 +243,14 @@ function TransactionsPage() {
             const cat = state.categories.find((c) => c.id === tx.categoryId);
             const card = tx.creditCardId ? state.creditCards.find((c) => c.id === tx.creditCardId) : null;
             const isIncome = tx.type === "income";
+            const isHighlighted = highlightId === tx.id;
             return (
-              <div key={tx.id} className="flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-accent/30 transition-colors group">
+              <div
+                key={tx.id}
+                ref={isHighlighted ? highlightRef : undefined}
+                className={`flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-accent/30 transition-colors group ${isHighlighted ? "ring-2 ring-primary bg-primary/10" : ""}`}
+              >
+
                 <div className={`size-8 md:size-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium ${isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"}`}>
                   {tx.description.charAt(0).toUpperCase()}
                 </div>
