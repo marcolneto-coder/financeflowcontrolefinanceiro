@@ -1,13 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { type Transaction, type TransactionType, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 
+type TxSearch = { year?: number; month?: number; highlight?: string };
+
 export const Route = createFileRoute("/transactions")({
   component: TransactionsPage,
+  validateSearch: (search: Record<string, unknown>): TxSearch => ({
+    year: typeof search.year === "number" ? search.year : search.year ? Number(search.year) : undefined,
+    month: typeof search.month === "number" ? search.month : search.month ? Number(search.month) : undefined,
+    highlight: typeof search.highlight === "string" ? search.highlight : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Transações — Finance Flow" },
@@ -16,6 +23,7 @@ export const Route = createFileRoute("/transactions")({
   }),
 });
 
+
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
@@ -23,12 +31,30 @@ const MONTHS = [
 
 function TransactionsPage() {
   const { state, deleteTransaction, duplicateToNextMonth } = useFinance();
+  const search = Route.useSearch();
   const current = getCurrentMonth();
-  const [year, setYear] = useState(current.year);
-  const [month, setMonth] = useState(current.month);
+  const [year, setYear] = useState(search.year ?? current.year);
+  const [month, setMonth] = useState(search.month ?? current.month);
   const [filter, setFilter] = useState<"all" | TransactionType>("all");
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [highlightId, setHighlightId] = useState<string | undefined>(search.highlight);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (search.year !== undefined) setYear(search.year);
+    if (search.month !== undefined) setMonth(search.month);
+    if (search.highlight) setHighlightId(search.highlight);
+  }, [search.year, search.month, search.highlight]);
+
+  useEffect(() => {
+    if (highlightId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      const t = setTimeout(() => setHighlightId(undefined), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [highlightId]);
+
 
   // Advanced search
   const [showSearch, setShowSearch] = useState(false);
@@ -217,8 +243,14 @@ function TransactionsPage() {
             const cat = state.categories.find((c) => c.id === tx.categoryId);
             const card = tx.creditCardId ? state.creditCards.find((c) => c.id === tx.creditCardId) : null;
             const isIncome = tx.type === "income";
+            const isHighlighted = highlightId === tx.id;
             return (
-              <div key={tx.id} className="flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-accent/30 transition-colors group">
+              <div
+                key={tx.id}
+                ref={isHighlighted ? highlightRef : undefined}
+                className={`flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-accent/30 transition-colors group ${isHighlighted ? "ring-2 ring-primary bg-primary/10" : ""}`}
+              >
+
                 <div className={`size-8 md:size-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium ${isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"}`}>
                   {tx.description.charAt(0).toUpperCase()}
                 </div>
