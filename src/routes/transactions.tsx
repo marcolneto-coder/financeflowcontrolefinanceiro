@@ -31,12 +31,30 @@ const MONTHS = [
 
 function TransactionsPage() {
   const { state, deleteTransaction, duplicateToNextMonth } = useFinance();
+  const search = Route.useSearch();
   const current = getCurrentMonth();
-  const [year, setYear] = useState(current.year);
-  const [month, setMonth] = useState(current.month);
+  const [year, setYear] = useState(search.year ?? current.year);
+  const [month, setMonth] = useState(search.month ?? current.month);
   const [filter, setFilter] = useState<"all" | TransactionType>("all");
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [highlightId, setHighlightId] = useState<string | undefined>(search.highlight);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (search.year !== undefined) setYear(search.year);
+    if (search.month !== undefined) setMonth(search.month);
+    if (search.highlight) setHighlightId(search.highlight);
+  }, [search.year, search.month, search.highlight]);
+
+  useEffect(() => {
+    if (highlightId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      const t = setTimeout(() => setHighlightId(undefined), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [highlightId]);
+
 
   // Advanced search
   const [showSearch, setShowSearch] = useState(false);
