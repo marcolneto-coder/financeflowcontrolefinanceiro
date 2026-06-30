@@ -66,15 +66,25 @@ function ReportsPage() {
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [state.transactions, state.categories, year]);
 
-  // 12-month detailed card projection starting from current month
+  // Projection: from January of current year through 12 months ahead of current month
   const current = getCurrentMonth();
   const cardProjection = useMemo(() => {
-    const months: { year: number; month: number; label: string }[] = [];
-    for (let i = 0; i < 12; i++) {
-      let m = current.month + i;
-      let y = current.year;
+    const months: { year: number; month: number; label: string; key: string; isPast: boolean }[] = [];
+    const startY = current.year;
+    const startM = 0;
+    // end inclusive = current.month + 11
+    const totalEnd = current.month + 11; // months past Jan of current year (offset)
+    for (let off = 0; off <= totalEnd; off++) {
+      let m = startM + off;
+      let y = startY;
       while (m > 11) { m -= 12; y++; }
-      months.push({ year: y, month: m, label: `${MONTHS_FULL[m]}/${y}` });
+      const isPast = y < current.year || (y === current.year && m < current.month);
+      months.push({
+        year: y, month: m,
+        label: `${MONTHS_FULL[m]}/${y}`,
+        key: `${y}-${m}`,
+        isPast,
+      });
     }
 
     const cardBlocks = state.creditCards.map((card) => {
@@ -96,6 +106,24 @@ function ReportsPage() {
     const grandTotal = cardBlocks.reduce((s, b) => s + b.cardTotal, 0);
     return { months, cardBlocks, grandTotal };
   }, [state.transactions, state.creditCards, current.month, current.year]);
+
+  // Indices of months currently visible (after hidePast and manual hide)
+  const visibleIdx = useMemo(() => {
+    return cardProjection.months
+      .map((mo, i) => ({ mo, i }))
+      .filter(({ mo }) => {
+        if (hiddenCols.has(mo.key)) return false;
+        if (hidePast && mo.isPast) return false;
+        return true;
+      })
+      .map(({ i }) => i);
+  }, [cardProjection.months, hiddenCols, hidePast]);
+
+  const goToTransaction = (y: number, m: number, txId?: string) => {
+    navigate({ to: "/transactions", search: { year: y, month: m, highlight: txId } });
+  };
+
+
 
   const buildExportRows = () => {
     const header = ["Cartão", "Descrição", ...cardProjection.months.map((mo) => `${MONTHS_SHORT[mo.month]}/${String(mo.year).slice(2)}`)];
