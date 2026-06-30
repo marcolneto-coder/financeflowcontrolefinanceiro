@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo, Fragment } from "react";
@@ -7,10 +7,11 @@ import {
 } from "recharts";
 import { CardBrandIcon } from "@/components/CardBrandIcon";
 import { Button } from "@/components/ui/button";
-import { FileDown, FileSpreadsheet } from "lucide-react";
+import { FileDown, FileSpreadsheet, EyeOff, Eye } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
 
 export const Route = createFileRoute("/reports")({
   component: ReportsPage,
