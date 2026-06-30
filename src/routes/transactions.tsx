@@ -1,13 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { type Transaction, type TransactionType, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 
+type TxSearch = { year?: number; month?: number; highlight?: string };
+
 export const Route = createFileRoute("/transactions")({
   component: TransactionsPage,
+  validateSearch: (search: Record<string, unknown>): TxSearch => ({
+    year: typeof search.year === "number" ? search.year : search.year ? Number(search.year) : undefined,
+    month: typeof search.month === "number" ? search.month : search.month ? Number(search.month) : undefined,
+    highlight: typeof search.highlight === "string" ? search.highlight : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Transações — Finance Flow" },
@@ -15,6 +22,7 @@ export const Route = createFileRoute("/transactions")({
     ],
   }),
 });
+
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
