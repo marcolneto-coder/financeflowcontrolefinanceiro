@@ -517,8 +517,6 @@ function ReportsPage() {
         </div>
       )}
 
-        </div>
-      )}
     </div>
   );
 }
