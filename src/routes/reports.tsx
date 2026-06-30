@@ -126,45 +126,53 @@ function ReportsPage() {
 
 
   const buildExportRows = () => {
-    const header = ["Cartão", "Descrição", ...cardProjection.months.map((mo) => `${MONTHS_SHORT[mo.month]}/${String(mo.year).slice(2)}`)];
+    const visibleMonths = visibleIdx.map((i) => cardProjection.months[i]);
+    const monthsLen = cardProjection.months.length;
+    const header = ["Cartão", "Descrição", ...visibleMonths.map((mo) => `${MONTHS_SHORT[mo.month]}/${String(mo.year).slice(2)}`)];
     const rows: (string | number)[][] = [header];
     cardProjection.cardBlocks.forEach(({ card, monthly }) => {
       const rowMap = new Map<string, { description: string; store?: string; isInstallment: boolean; totalInstallments: number; perMonth: (number | null)[] }>();
       monthly.forEach((m, mi) => {
         m.txs.forEach((tx) => {
-          const key = tx.installmentGroupId || `${tx.description}|${tx.store || ""}`;
+          const key = tx.installmentGroupId
+            ? `inst:${tx.installmentGroupId}`
+            : `single:${tx.description}|${tx.store || ""}|${tx.amount}`;
           if (!rowMap.has(key)) {
             rowMap.set(key, {
               description: tx.description, store: tx.store,
               isInstallment: tx.isInstallment, totalInstallments: tx.totalInstallments,
-              perMonth: Array(12).fill(null),
+              perMonth: Array(monthsLen).fill(null),
             });
           }
           const r = rowMap.get(key)!;
           r.perMonth[mi] = (r.perMonth[mi] || 0) + tx.amount;
         });
       });
-      Array.from(rowMap.values()).forEach((r, ri) => {
+      const allRows = Array.from(rowMap.values()).filter((r) =>
+        visibleIdx.some((i) => r.perMonth[i] != null)
+      );
+      allRows.forEach((r, ri) => {
         rows.push([
           ri === 0 ? card.name : "",
           r.description + (r.store ? ` / ${r.store}` : "") + (r.isInstallment && r.totalInstallments > 1 ? ` (${r.totalInstallments}x)` : ""),
-          ...r.perMonth.map((v) => (v != null ? Number(v.toFixed(2)) : "")),
+          ...visibleIdx.map((i) => (r.perMonth[i] != null ? Number(r.perMonth[i]!.toFixed(2)) : "")),
         ]);
       });
       rows.push([
         `Subtotal — ${card.name}`, "",
-        ...monthly.map((m) => (m.total > 0 ? Number(m.total.toFixed(2)) : "")),
+        ...visibleIdx.map((i) => (monthly[i].total > 0 ? Number(monthly[i].total.toFixed(2)) : "")),
       ]);
     });
     rows.push([
       "TOTAL GERAL", "",
-      ...cardProjection.months.map((_, mi) => {
-        const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[mi].total, 0);
+      ...visibleIdx.map((i) => {
+        const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[i].total, 0);
         return total > 0 ? Number(total.toFixed(2)) : "";
       }),
     ]);
     return rows;
   };
+
 
   const exportExcel = () => {
     const rows = buildExportRows();
