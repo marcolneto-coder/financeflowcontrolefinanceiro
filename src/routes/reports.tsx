@@ -70,14 +70,23 @@ function ReportsPage() {
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [state.transactions, state.categories, year, catView, catMonth]);
 
-  // Projection: from January of current year through 12 months ahead of current month
+  // Projection: from January of current year through 12 months ahead of current month.
+  // When past months are hidden, extend the tail so 12 future months always remain visible.
   const current = getCurrentMonth();
+  const hiddenPastCount = useMemo(() => {
+    if (hidePast) return current.month; // Jan..current.month-1
+    let n = 0;
+    for (let m = 0; m < current.month; m++) {
+      if (hiddenCols.has(`${current.year}-${m}`)) n++;
+    }
+    return n;
+  }, [hidePast, hiddenCols, current.month, current.year]);
+
   const cardProjection = useMemo(() => {
     const months: { year: number; month: number; label: string; key: string; isPast: boolean }[] = [];
     const startY = current.year;
     const startM = 0;
-    // end inclusive = current.month + 11
-    const totalEnd = current.month + 11; // months past Jan of current year (offset)
+    const totalEnd = current.month + 11 + hiddenPastCount;
     for (let off = 0; off <= totalEnd; off++) {
       let m = startM + off;
       let y = startY;
@@ -109,7 +118,7 @@ function ReportsPage() {
 
     const grandTotal = cardBlocks.reduce((s, b) => s + b.cardTotal, 0);
     return { months, cardBlocks, grandTotal };
-  }, [state.transactions, state.creditCards, current.month, current.year]);
+  }, [state.transactions, state.creditCards, current.month, current.year, hiddenPastCount]);
 
   // Indices of months currently visible (after hidePast and manual hide)
   const visibleIdx = useMemo(() => {
