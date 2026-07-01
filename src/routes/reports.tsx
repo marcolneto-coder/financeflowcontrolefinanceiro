@@ -35,6 +35,8 @@ function ReportsPage() {
   const [tab, setTab] = useState<"overview" | "cards">("overview");
   const [hidePast, setHidePast] = useState(true);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [catView, setCatView] = useState<"yearly" | "monthly">("yearly");
+  const [catMonth, setCatMonth] = useState<number>(now.getMonth());
 
 
   const monthlyData = useMemo(() => {
@@ -56,7 +58,9 @@ function ReportsPage() {
     state.transactions
       .filter((t) => {
         const d = new Date(t.date + "T12:00:00");
-        return d.getFullYear() === year && t.type === "expense";
+        if (d.getFullYear() !== year || t.type !== "expense") return false;
+        if (catView === "monthly" && d.getMonth() !== catMonth) return false;
+        return true;
       })
       .forEach((t) => {
         const cat = state.categories.find((c) => c.id === t.categoryId);
@@ -64,16 +68,25 @@ function ReportsPage() {
         map[name] = (map[name] || 0) + t.amount;
       });
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [state.transactions, state.categories, year]);
+  }, [state.transactions, state.categories, year, catView, catMonth]);
 
-  // Projection: from January of current year through 12 months ahead of current month
+  // Projection: from January of current year through 12 months ahead of current month.
+  // When past months are hidden, extend the tail so 12 future months always remain visible.
   const current = getCurrentMonth();
+  const hiddenPastCount = useMemo(() => {
+    if (hidePast) return current.month; // Jan..current.month-1
+    let n = 0;
+    for (let m = 0; m < current.month; m++) {
+      if (hiddenCols.has(`${current.year}-${m}`)) n++;
+    }
+    return n;
+  }, [hidePast, hiddenCols, current.month, current.year]);
+
   const cardProjection = useMemo(() => {
     const months: { year: number; month: number; label: string; key: string; isPast: boolean }[] = [];
     const startY = current.year;
     const startM = 0;
-    // end inclusive = current.month + 11
-    const totalEnd = current.month + 11; // months past Jan of current year (offset)
+    const totalEnd = current.month + 11 + hiddenPastCount;
     for (let off = 0; off <= totalEnd; off++) {
       let m = startM + off;
       let y = startY;
@@ -105,7 +118,7 @@ function ReportsPage() {
 
     const grandTotal = cardBlocks.reduce((s, b) => s + b.cardTotal, 0);
     return { months, cardBlocks, grandTotal };
-  }, [state.transactions, state.creditCards, current.month, current.year]);
+  }, [state.transactions, state.creditCards, current.month, current.year, hiddenPastCount]);
 
   // Indices of months currently visible (after hidePast and manual hide)
   const visibleIdx = useMemo(() => {
@@ -264,9 +277,39 @@ function ReportsPage() {
           </div>
 
           <div className="glass-card p-4 md:p-6">
-            <h2 className="text-base md:text-lg font-medium mb-6">Despesas por Categoria</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+              <h2 className="text-base md:text-lg font-medium">Despesas por Categoria</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex gap-1 p-1 bg-muted rounded-lg">
+                  {(["yearly", "monthly"] as const).map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setCatView(v)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                        catView === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                      }`}
+                    >
+                      {v === "yearly" ? "Anual" : "Mensal"}
+                    </button>
+                  ))}
+                </div>
+                {catView === "monthly" && (
+                  <select
+                    value={catMonth}
+                    onChange={(e) => setCatMonth(Number(e.target.value))}
+                    className="px-2 py-1 text-xs rounded-md border border-border bg-background"
+                  >
+                    {MONTHS_FULL.map((m, i) => (
+                      <option key={i} value={i}>{m}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
             {categoryData.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">Sem despesas neste ano.</p>
+              <p className="text-sm text-muted-foreground text-center py-12">
+                Sem despesas {catView === "monthly" ? `em ${MONTHS_FULL[catMonth]}/${year}` : "neste ano"}.
+              </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <ResponsiveContainer width="100%" height={250}>
@@ -345,18 +388,18 @@ function ReportsPage() {
               Nenhum cartão cadastrado.
             </div>
           ) : (
-            <div className="glass-card p-2 md:p-4 overflow-x-auto">
+            <div className="glass-card p-2 md:p-4 overflow-auto max-h-[calc(100vh-16rem)]">
               <table className="w-full text-xs border-collapse min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left p-2 font-semibold sticky left-0 z-20 min-w-[120px] w-[120px] bg-primary/30 text-foreground">Cartão</th>
-                    <th className="text-left p-2 font-semibold sticky left-[120px] z-20 min-w-[200px] w-[200px] bg-primary/20 text-foreground">Descrição</th>
+                    <th className="text-left p-2 font-semibold sticky top-0 left-0 z-40 min-w-[120px] w-[120px] bg-primary/30 text-foreground">Cartão</th>
+                    <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 lg:z-40 min-w-[200px] w-[200px] bg-primary/20 text-foreground">Descrição</th>
                     {visibleIdx.map((i) => {
                       const mo = cardProjection.months[i];
                       return (
                         <th
                           key={mo.key}
-                          className={`text-right p-2 font-semibold whitespace-nowrap text-foreground ${mo.isPast ? "bg-primary/5" : "bg-primary/10"}`}
+                          className={`text-right p-2 font-semibold whitespace-nowrap text-foreground sticky top-0 z-20 ${mo.isPast ? "bg-primary/5" : "bg-primary/10"}`}
                         >
                           <div className="flex items-center justify-end gap-1">
                             <span>{MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}</span>
@@ -428,7 +471,7 @@ function ReportsPage() {
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-primary/20 text-muted-foreground italic">Sem lançamentos</td>
+                            <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-muted-foreground italic">Sem lançamentos</td>
                             {visibleIdx.map((i) => (
                               <td key={i} className="p-2 bg-primary/5" />
                             ))}
@@ -444,7 +487,7 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-primary/20 text-foreground">
+                              <td className="p-2 align-middle lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-foreground">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
@@ -481,7 +524,7 @@ function ReportsPage() {
                         )}
                         <tr key={`${card.id}-subtotal`} className="border-b-2 border-border font-semibold">
                           <td className="p-2 sticky left-0 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider bg-primary/40 text-foreground">Subtotal</td>
-                          <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-primary/30 text-foreground">{card.name}</td>
+                          <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/30 text-foreground">{card.name}</td>
                           {visibleIdx.map((i) => {
                             const m = monthly[i];
                             return (
@@ -498,7 +541,7 @@ function ReportsPage() {
                     <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-primary/50 text-foreground">
                       Total
                     </td>
-                    <td className="p-2 sticky left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider bg-primary/40 text-foreground">
+                    <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider bg-primary/40 text-foreground">
                       Todos os cartões
                     </td>
                     {visibleIdx.map((i) => {
