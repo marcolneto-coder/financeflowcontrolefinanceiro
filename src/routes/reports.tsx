@@ -471,7 +471,7 @@ function ReportsPage() {
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td className="p-2 sticky left-[120px] z-10 w-[200px] bg-primary/20 text-muted-foreground italic">Sem lançamentos</td>
+                            <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-muted-foreground italic">Sem lançamentos</td>
                             {visibleIdx.map((i) => (
                               <td key={i} className="p-2 bg-primary/5" />
                             ))}
