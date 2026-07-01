@@ -35,6 +35,8 @@ function ReportsPage() {
   const [tab, setTab] = useState<"overview" | "cards">("overview");
   const [hidePast, setHidePast] = useState(true);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [catView, setCatView] = useState<"yearly" | "monthly">("yearly");
+  const [catMonth, setCatMonth] = useState<number>(now.getMonth());
 
 
   const monthlyData = useMemo(() => {
