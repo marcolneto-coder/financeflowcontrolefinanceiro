@@ -392,14 +392,14 @@ function ReportsPage() {
               <table className="w-full text-xs border-collapse min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left p-2 font-semibold sticky top-0 left-0 z-40 min-w-[120px] w-[120px] bg-primary/30 text-foreground">Cartão</th>
-                    <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 lg:z-40 min-w-[200px] w-[200px] bg-primary/20 text-foreground">Descrição</th>
+                    <th className="text-left p-2 font-semibold sticky top-0 left-0 z-40 min-w-[120px] w-[120px] bg-primary text-primary-foreground">Cartão</th>
+                    <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 lg:z-40 min-w-[200px] w-[200px] bg-primary text-primary-foreground">Descrição</th>
                     {visibleIdx.map((i) => {
                       const mo = cardProjection.months[i];
                       return (
                         <th
                           key={mo.key}
-                          className={`text-right p-2 font-semibold whitespace-nowrap text-foreground sticky top-0 z-20 ${mo.isPast ? "bg-primary/5" : "bg-primary/10"}`}
+                          className="text-right p-2 font-semibold whitespace-nowrap text-primary-foreground sticky top-0 z-20 bg-primary"
                         >
                           <div className="flex items-center justify-end gap-1">
                             <span>{MONTHS_SHORT[mo.month].toLowerCase()}/{String(mo.year).slice(2)}</span>
