@@ -277,9 +277,39 @@ function ReportsPage() {
           </div>
 
           <div className="glass-card p-4 md:p-6">
-            <h2 className="text-base md:text-lg font-medium mb-6">Despesas por Categoria</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+              <h2 className="text-base md:text-lg font-medium">Despesas por Categoria</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex gap-1 p-1 bg-muted rounded-lg">
+                  {(["yearly", "monthly"] as const).map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setCatView(v)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                        catView === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                      }`}
+                    >
+                      {v === "yearly" ? "Anual" : "Mensal"}
+                    </button>
+                  ))}
+                </div>
+                {catView === "monthly" && (
+                  <select
+                    value={catMonth}
+                    onChange={(e) => setCatMonth(Number(e.target.value))}
+                    className="px-2 py-1 text-xs rounded-md border border-border bg-background"
+                  >
+                    {MONTHS_FULL.map((m, i) => (
+                      <option key={i} value={i}>{m}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
             {categoryData.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">Sem despesas neste ano.</p>
+              <p className="text-sm text-muted-foreground text-center py-12">
+                Sem despesas {catView === "monthly" ? `em ${MONTHS_FULL[catMonth]}/${year}` : "neste ano"}.
+              </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <ResponsiveContainer width="100%" height={250}>
