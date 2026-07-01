@@ -58,7 +58,9 @@ function ReportsPage() {
     state.transactions
       .filter((t) => {
         const d = new Date(t.date + "T12:00:00");
-        return d.getFullYear() === year && t.type === "expense";
+        if (d.getFullYear() !== year || t.type !== "expense") return false;
+        if (catView === "monthly" && d.getMonth() !== catMonth) return false;
+        return true;
       })
       .forEach((t) => {
         const cat = state.categories.find((c) => c.id === t.categoryId);
@@ -66,7 +68,7 @@ function ReportsPage() {
         map[name] = (map[name] || 0) + t.amount;
       });
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [state.transactions, state.categories, year]);
+  }, [state.transactions, state.categories, year, catView, catMonth]);
 
   // Projection: from January of current year through 12 months ahead of current month
   const current = getCurrentMonth();
