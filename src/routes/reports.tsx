@@ -487,7 +487,7 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle sticky left-[120px] z-10 w-[200px] bg-primary/20 text-foreground">
+                              <td className="p-2 align-middle lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-foreground">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
