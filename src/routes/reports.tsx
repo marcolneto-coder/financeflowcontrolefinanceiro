@@ -324,13 +324,17 @@ function ReportsPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-3">
-                  {categoryData.map((cat, i) => (
-                    <div key={cat.name} className="flex items-center gap-3">
-                      <div className="size-3 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                      <span className="text-sm flex-1">{cat.name}</span>
-                      <span className="text-sm tabular-nums font-medium">{formatCurrency(cat.value)}</span>
-                    </div>
-                  ))}
+                  {(() => {
+                    const total = categoryData.reduce((sum, c) => sum + c.value, 0);
+                    return categoryData.map((cat, i) => (
+                      <div key={cat.name} className="flex items-center gap-3">
+                        <div className="size-3 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className="text-sm flex-1">{cat.name}</span>
+                        <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">{total > 0 ? `${((cat.value / total) * 100).toFixed(1)}%` : "0.0%"}</span>
+                        <span className="text-sm tabular-nums font-medium w-24 text-right">{formatCurrency(cat.value)}</span>
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
             )}
