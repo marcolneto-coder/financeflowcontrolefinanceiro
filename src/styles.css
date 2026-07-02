@@ -4,14 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@font-face {
-  font-family: 'Instrument Sans';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
-}
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -20,6 +12,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -44,6 +38,7 @@
   --color-income-foreground: var(--income-foreground);
   --color-expense: var(--expense);
   --color-expense-foreground: var(--expense-foreground);
+  --color-gold: var(--gold);
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
   --color-chart-1: var(--chart-1);
@@ -62,78 +57,93 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.145 0.014 260);
-  --foreground: oklch(0.93 0.01 260);
-  --card: oklch(0.19 0.014 260);
-  --card-foreground: oklch(0.93 0.01 260);
-  --popover: oklch(0.19 0.014 260);
-  --popover-foreground: oklch(0.93 0.01 260);
-  --primary: oklch(0.7 0.12 220);
-  --primary-foreground: oklch(0.145 0.014 260);
-  --secondary: oklch(0.24 0.014 260);
-  --secondary-foreground: oklch(0.85 0.02 260);
-  --muted: oklch(0.22 0.012 260);
-  --muted-foreground: oklch(0.6 0.03 260);
-  --accent: oklch(0.24 0.018 260);
-  --accent-foreground: oklch(0.93 0.01 260);
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.97 0.01 260);
-  --border: oklch(0.28 0.012 260);
-  --input: oklch(0.26 0.014 260);
-  --ring: oklch(0.7 0.12 220);
+  --radius: 0.625rem;
 
-  --income: oklch(0.65 0.17 155);
-  --income-foreground: oklch(0.97 0.01 155);
-  --expense: oklch(0.65 0.18 15);
-  --expense-foreground: oklch(0.97 0.01 15);
+  /* Navy Trust — dark, professional finance */
+  --background: oklch(0.16 0.025 260);
+  --foreground: oklch(0.95 0.01 250);
+  --card: oklch(0.21 0.03 260);
+  --card-foreground: oklch(0.95 0.01 250);
+  --popover: oklch(0.21 0.03 260);
+  --popover-foreground: oklch(0.95 0.01 250);
+  --primary: oklch(0.62 0.14 250);
+  --primary-foreground: oklch(0.98 0.005 250);
+  --secondary: oklch(0.26 0.028 260);
+  --secondary-foreground: oklch(0.9 0.015 250);
+  --muted: oklch(0.24 0.025 260);
+  --muted-foreground: oklch(0.68 0.02 250);
+  --accent: oklch(0.28 0.035 255);
+  --accent-foreground: oklch(0.95 0.01 250);
+  --destructive: oklch(0.62 0.2 25);
+  --destructive-foreground: oklch(0.98 0.01 250);
+  --border: oklch(0.3 0.02 260);
+  --input: oklch(0.28 0.022 260);
+  --ring: oklch(0.62 0.14 250);
 
-  --glass: oklch(0.19 0.014 260 / 70%);
-  --glass-border: oklch(0.35 0.012 260 / 40%);
+  --gold: oklch(0.78 0.13 85);
+  --income: oklch(0.7 0.16 160);
+  --income-foreground: oklch(0.98 0.01 160);
+  --expense: oklch(0.66 0.19 20);
+  --expense-foreground: oklch(0.98 0.01 20);
 
-  --chart-1: oklch(0.7 0.12 220);
-  --chart-2: oklch(0.65 0.17 155);
-  --chart-3: oklch(0.65 0.18 15);
-  --chart-4: oklch(0.75 0.15 80);
+  --glass: oklch(0.22 0.03 260 / 72%);
+  --glass-border: oklch(0.45 0.02 260 / 35%);
+
+  --chart-1: oklch(0.62 0.14 250);
+  --chart-2: oklch(0.7 0.16 160);
+  --chart-3: oklch(0.78 0.13 85);
+  --chart-4: oklch(0.66 0.19 20);
   --chart-5: oklch(0.65 0.15 300);
 
-  --sidebar: oklch(0.17 0.014 260);
-  --sidebar-foreground: oklch(0.93 0.01 260);
-  --sidebar-primary: oklch(0.7 0.12 220);
-  --sidebar-primary-foreground: oklch(0.145 0.014 260);
-  --sidebar-accent: oklch(0.24 0.018 260);
-  --sidebar-accent-foreground: oklch(0.93 0.01 260);
-  --sidebar-border: oklch(0.28 0.012 260);
-  --sidebar-ring: oklch(0.7 0.12 220);
+  --sidebar: oklch(0.13 0.03 260);
+  --sidebar-foreground: oklch(0.92 0.01 250);
+  --sidebar-primary: oklch(0.62 0.14 250);
+  --sidebar-primary-foreground: oklch(0.98 0.005 250);
+  --sidebar-accent: oklch(0.22 0.03 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 250);
+  --sidebar-border: oklch(0.24 0.025 260);
+  --sidebar-ring: oklch(0.62 0.14 250);
+
+  --shadow-elegant: 0 10px 30px -12px oklch(0 0 0 / 45%), 0 2px 6px -2px oklch(0 0 0 / 25%);
+  --shadow-glow: 0 0 0 1px oklch(0.62 0.14 250 / 25%), 0 8px 32px -8px oklch(0.62 0.14 250 / 35%);
+  --gradient-primary: linear-gradient(135deg, oklch(0.62 0.14 250) 0%, oklch(0.5 0.16 255) 100%);
+  --gradient-surface: linear-gradient(180deg, oklch(0.22 0.03 260) 0%, oklch(0.19 0.028 260) 100%);
 }
 
 :root.light {
-  --background: oklch(0.99 0.005 260);
-  --foreground: oklch(0.2 0.02 260);
+  --background: oklch(0.985 0.005 250);
+  --foreground: oklch(0.2 0.03 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 260);
+  --card-foreground: oklch(0.2 0.03 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 260);
-  --primary-foreground: oklch(0.99 0.005 260);
-  --secondary: oklch(0.96 0.005 260);
-  --secondary-foreground: oklch(0.2 0.02 260);
-  --muted: oklch(0.96 0.005 260);
-  --muted-foreground: oklch(0.5 0.02 260);
-  --accent: oklch(0.94 0.01 260);
-  --accent-foreground: oklch(0.2 0.02 260);
-  --destructive-foreground: oklch(0.99 0.005 260);
-  --border: oklch(0.9 0.008 260);
-  --input: oklch(0.93 0.008 260);
+  --popover-foreground: oklch(0.2 0.03 260);
+  --primary: oklch(0.42 0.14 258);
+  --primary-foreground: oklch(0.99 0.005 250);
+  --secondary: oklch(0.96 0.01 250);
+  --secondary-foreground: oklch(0.22 0.03 260);
+  --muted: oklch(0.96 0.008 250);
+  --muted-foreground: oklch(0.48 0.02 260);
+  --accent: oklch(0.93 0.02 250);
+  --accent-foreground: oklch(0.22 0.03 260);
+  --destructive-foreground: oklch(0.99 0.005 250);
+  --border: oklch(0.9 0.012 250);
+  --input: oklch(0.93 0.012 250);
+  --ring: oklch(0.42 0.14 258);
 
-  --glass: oklch(1 0 0 / 75%);
-  --glass-border: oklch(0.85 0.01 260 / 60%);
+  --gold: oklch(0.62 0.14 80);
+  --glass: oklch(1 0 0 / 78%);
+  --glass-border: oklch(0.82 0.015 250 / 55%);
 
-  --sidebar: oklch(0.97 0.005 260);
-  --sidebar-foreground: oklch(0.2 0.02 260);
-  --sidebar-primary-foreground: oklch(0.99 0.005 260);
-  --sidebar-accent: oklch(0.94 0.01 260);
-  --sidebar-accent-foreground: oklch(0.2 0.02 260);
-  --sidebar-border: oklch(0.9 0.008 260);
+  --sidebar: oklch(0.22 0.03 260);
+  --sidebar-foreground: oklch(0.95 0.01 250);
+  --sidebar-primary: oklch(0.62 0.14 250);
+  --sidebar-primary-foreground: oklch(0.99 0.005 250);
+  --sidebar-accent: oklch(0.28 0.03 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 250);
+  --sidebar-border: oklch(0.28 0.03 260);
+
+  --shadow-elegant: 0 10px 30px -14px oklch(0.2 0.05 260 / 18%), 0 2px 6px -2px oklch(0.2 0.05 260 / 8%);
+  --gradient-surface: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.98 0.005 250) 100%);
 }
 
 @layer base {
@@ -144,24 +154,53 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
   .glass-card {
     background: var(--color-glass);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-xl);
   }
 
   .glass-card-round {
     background: var(--color-glass);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px) saturate(140%);
     border: 1px solid var(--color-glass-border);
     border-radius: 1.5rem;
+  }
+
+  .surface-elevated {
+    background: var(--gradient-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-elegant);
+  }
+
+  .brand-mark {
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-glow);
   }
 }

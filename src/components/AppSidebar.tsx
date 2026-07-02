@@ -32,52 +32,78 @@ export function AppSidebar() {
 
   const navContent = (
     <>
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="size-9 rounded-xl bg-primary/20 flex items-center justify-center">
-            <div className="size-3.5 rounded-full bg-primary" />
+      <div className="p-5">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="relative size-10 rounded-xl brand-mark flex items-center justify-center overflow-hidden">
+            <svg viewBox="0 0 24 24" className="size-5 text-primary-foreground" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 17l5-5 4 4 8-8" />
+              <path d="M14 8h6v6" />
+            </svg>
           </div>
-          <span className="text-xl font-semibold tracking-tight text-foreground">
-            Finance Flow
-          </span>
+          <div className="flex flex-col leading-tight">
+            <span className="font-display text-[15px] font-semibold text-sidebar-foreground tracking-tight">
+              Finance Flow
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Wealth Console
+            </span>
+          </div>
           {isMobile && (
-            <button onClick={() => setOpen(false)} className="ml-auto p-1.5 rounded-lg hover:bg-accent">
+            <button onClick={() => setOpen(false)} className="ml-auto p-1.5 rounded-lg hover:bg-sidebar-accent">
               <X className="size-5" />
             </button>
           )}
         </div>
 
-        <nav className="space-y-1">
-          {items.map((item) => (
-            <Link
-              key={item.url}
-              to={item.url}
-              onClick={() => isMobile && setOpen(false)}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive(item.url)
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              <item.icon className="size-4" />
-              <span>{item.title}</span>
-            </Link>
-          ))}
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+          Navegação
+        </p>
+        <nav className="space-y-0.5">
+          {items.map((item) => {
+            const active = isActive(item.url);
+            return (
+              <Link
+                key={item.url}
+                to={item.url}
+                onClick={() => isMobile && setOpen(false)}
+                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  active
+                    ? "bg-sidebar-accent text-sidebar-foreground"
+                    : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                }`}
+              >
+                <span
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full transition-all ${
+                    active ? "bg-primary opacity-100" : "opacity-0"
+                  }`}
+                />
+                <item.icon className={`size-[18px] transition-colors ${active ? "text-primary" : ""}`} />
+                <span>{item.title}</span>
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
-      <div className="mt-auto p-6 space-y-3">
-        <div className="glass-card p-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 truncate">
-            {user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Conta"}
-          </p>
-          <p className="text-xs text-muted-foreground truncate">
-            {user?.email}
-          </p>
+      <div className="mt-auto p-5 space-y-3">
+        <div className="rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-4">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-full bg-primary/15 text-primary flex items-center justify-center font-display font-semibold text-sm">
+              {(user?.user_metadata?.display_name || user?.email || "U").slice(0, 1).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-sidebar-foreground truncate">
+                {user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Conta"}
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                {user?.email}
+              </p>
+            </div>
+          </div>
         </div>
         <button
           onClick={() => signOut()}
-          className="flex items-center gap-2 w-full px-4 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
         >
           <LogOut className="size-4" />
           <span>Sair</span>
