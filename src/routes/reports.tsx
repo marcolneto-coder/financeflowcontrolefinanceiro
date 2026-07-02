@@ -465,13 +465,13 @@ function ReportsPage() {
                       <Fragment key={card.id}>
                         {rows.length === 0 ? (
                           <tr key={`${card.id}-empty`} className="border-b border-border/50">
-                            <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-primary/30 text-foreground">
+                            <td className="p-2 align-middle sticky left-0 z-30 w-[120px] bg-primary text-primary-foreground">
                               <div className="flex items-center gap-2">
                                 <CardBrandIcon brand={card.brand} className="w-7 h-4" />
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-muted-foreground italic">Sem lançamentos</td>
+                            <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-primary text-primary-foreground lg:bg-primary italic">Sem lançamentos</td>
                             {visibleIdx.map((i) => (
                               <td key={i} className="p-2 bg-primary/5" />
                             ))}
