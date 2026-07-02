@@ -324,13 +324,17 @@ function ReportsPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-3">
-                  {categoryData.map((cat, i) => (
-                    <div key={cat.name} className="flex items-center gap-3">
-                      <div className="size-3 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                      <span className="text-sm flex-1">{cat.name}</span>
-                      <span className="text-sm tabular-nums font-medium">{formatCurrency(cat.value)}</span>
-                    </div>
-                  ))}
+                  {(() => {
+                    const total = categoryData.reduce((sum, c) => sum + c.value, 0);
+                    return categoryData.map((cat, i) => (
+                      <div key={cat.name} className="flex items-center gap-3">
+                        <div className="size-3 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className="text-sm flex-1">{cat.name}</span>
+                        <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">{total > 0 ? `${((cat.value / total) * 100).toFixed(1)}%` : "0.0%"}</span>
+                        <span className="text-sm tabular-nums font-medium w-24 text-right">{formatCurrency(cat.value)}</span>
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
             )}
@@ -393,7 +397,7 @@ function ReportsPage() {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left p-2 font-semibold sticky top-0 left-0 z-40 min-w-[120px] w-[120px] bg-primary text-primary-foreground">Cartão</th>
-                    <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 lg:z-40 min-w-[200px] w-[200px] bg-primary text-primary-foreground">Descrição</th>
+                    <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 min-w-[200px] w-[200px] bg-primary text-primary-foreground">Descrição</th>
                     {visibleIdx.map((i) => {
                       const mo = cardProjection.months[i];
                       return (
@@ -465,13 +469,13 @@ function ReportsPage() {
                       <Fragment key={card.id}>
                         {rows.length === 0 ? (
                           <tr key={`${card.id}-empty`} className="border-b border-border/50">
-                            <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-primary/30 text-foreground">
+                            <td className="p-2 align-middle sticky left-0 z-30 w-[120px] bg-primary text-primary-foreground">
                               <div className="flex items-center gap-2">
                                 <CardBrandIcon brand={card.brand} className="w-7 h-4" />
                                 <span className="truncate">{card.name}</span>
                               </div>
                             </td>
-                            <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-muted-foreground italic">Sem lançamentos</td>
+                            <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-card text-foreground lg:bg-primary lg:text-primary-foreground italic">Sem lançamentos</td>
                             {visibleIdx.map((i) => (
                               <td key={i} className="p-2 bg-primary/5" />
                             ))}
@@ -479,7 +483,7 @@ function ReportsPage() {
                         ) : (
                           rows.map((row, ri) => (
                             <tr key={`${card.id}-${row.key}`} className="border-b border-border/30 hover:bg-accent/40">
-                              <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-primary/30 text-foreground">
+                              <td className="p-2 align-middle sticky left-0 z-30 w-[120px] bg-primary text-primary-foreground">
                                 {ri === 0 && (
                                   <div className="flex items-center gap-2">
                                     <CardBrandIcon brand={card.brand} className="w-7 h-4" />
@@ -487,12 +491,12 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-foreground">
+                              <td className="p-2 align-middle lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-card text-foreground lg:bg-primary lg:text-primary-foreground">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
                                   {row.isInstallment && row.totalInstallments > 1 && (
-                                    <span className="text-muted-foreground ml-1">({row.totalInstallments}x)</span>
+                                    <span className="text-muted-foreground lg:text-primary-foreground/70 ml-1">({row.totalInstallments}x)</span>
                                   )}
                                 </span>
                               </td>
@@ -523,8 +527,8 @@ function ReportsPage() {
                           ))
                         )}
                         <tr key={`${card.id}-subtotal`} className="border-b-2 border-border font-semibold">
-                          <td className="p-2 sticky left-0 z-10 w-[120px] text-right uppercase text-[10px] tracking-wider bg-primary/40 text-foreground">Subtotal</td>
-                          <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/30 text-foreground">{card.name}</td>
+                          <td className="p-2 sticky left-0 z-30 w-[120px] text-right uppercase text-[10px] tracking-wider bg-primary text-primary-foreground">Subtotal</td>
+                          <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-primary text-primary-foreground">{card.name}</td>
                           {visibleIdx.map((i) => {
                             const m = monthly[i];
                             return (
@@ -538,10 +542,10 @@ function ReportsPage() {
                     );
                   })}
                   <tr className="font-bold border-t-2 border-primary">
-                    <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-primary/50 text-foreground">
+                    <td className="p-2 sticky left-0 z-30 w-[120px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">
                       Total
                     </td>
-                    <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider bg-primary/40 text-foreground">
+                    <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">
                       Todos os cartões
                     </td>
                     {visibleIdx.map((i) => {
