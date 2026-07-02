@@ -538,10 +538,10 @@ function ReportsPage() {
                     );
                   })}
                   <tr className="font-bold border-t-2 border-primary">
-                    <td className="p-2 sticky left-0 z-10 w-[120px] uppercase text-[11px] tracking-wider bg-primary/50 text-foreground">
+                    <td className="p-2 sticky left-0 z-30 w-[120px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">
                       Total
                     </td>
-                    <td className="p-2 lg:sticky lg:left-[120px] z-10 w-[200px] uppercase text-[11px] tracking-wider bg-primary/40 text-foreground">
+                    <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">
                       Todos os cartões
                     </td>
                     {visibleIdx.map((i) => {
