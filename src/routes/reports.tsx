@@ -479,7 +479,7 @@ function ReportsPage() {
                         ) : (
                           rows.map((row, ri) => (
                             <tr key={`${card.id}-${row.key}`} className="border-b border-border/30 hover:bg-accent/40">
-                              <td className="p-2 align-middle sticky left-0 z-10 w-[120px] bg-primary/30 text-foreground">
+                              <td className="p-2 align-middle sticky left-0 z-30 w-[120px] bg-primary text-primary-foreground">
                                 {ri === 0 && (
                                   <div className="flex items-center gap-2">
                                     <CardBrandIcon brand={card.brand} className="w-7 h-4" />
@@ -487,12 +487,12 @@ function ReportsPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-2 align-middle lg:sticky lg:left-[120px] z-10 w-[200px] bg-primary/20 text-foreground">
+                              <td className="p-2 align-middle lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-card text-foreground lg:bg-primary lg:text-primary-foreground">
                                 <span className="truncate">
                                   {row.description}
                                   {row.store ? ` / ${row.store}` : ""}
                                   {row.isInstallment && row.totalInstallments > 1 && (
-                                    <span className="text-muted-foreground ml-1">({row.totalInstallments}x)</span>
+                                    <span className="text-muted-foreground lg:text-primary-foreground/70 ml-1">({row.totalInstallments}x)</span>
                                   )}
                                 </span>
                               </td>
