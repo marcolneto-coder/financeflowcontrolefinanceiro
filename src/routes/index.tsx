@@ -216,3 +216,67 @@ function TransactionRow({ tx, categories, cards }: {
     </div>
   );
 }
+
+function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
+  total: number; cardExpenses: number; nonCardExpenses: number; diff: number;
+}) {
+  const isBad = diff > 0;
+  return (
+    <div className="glass-card p-4 md:p-6">
+      <div className="flex justify-between items-start mb-3 md:mb-4">
+        <p className="text-xs md:text-sm text-muted-foreground">Despesas</p>
+        <div className="text-expense"><TrendingDown className="size-5" /></div>
+      </div>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
+      <div className="mt-3 space-y-1.5 text-xs">
+        <div className="flex justify-between items-center gap-2">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <CreditCard className="size-3" /> Cartão
+          </span>
+          <span className="tabular-nums font-medium">{formatCurrency(cardExpenses)}</span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <Wallet className="size-3" /> Outras
+          </span>
+          <span className="tabular-nums font-medium">{formatCurrency(nonCardExpenses)}</span>
+        </div>
+      </div>
+      {diff !== 0 && (
+        <p className={`text-xs mt-3 flex items-center gap-1 ${isBad ? "text-expense" : "text-income"}`}>
+          {diff > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
+          {Math.abs(diff).toFixed(1)}% vs mês anterior
+        </p>
+      )}
+    </div>
+  );
+}
+
+function WeeklyBalanceCard({ balance }: { balance: number }) {
+  const [weeks, setWeeks] = useState<string>("4");
+  const weeksNum = parseFloat(weeks.replace(",", "."));
+  const perWeek = Number.isFinite(weeksNum) && weeksNum > 0 ? balance / weeksNum : null;
+  return (
+    <div className="glass-card p-4 md:p-6">
+      <div className="flex justify-between items-start mb-3 md:mb-4">
+        <p className="text-xs md:text-sm text-muted-foreground">Saldo por semana</p>
+        <div className="text-primary"><CalendarDays className="size-5" /></div>
+      </div>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">
+        {perWeek !== null ? formatCurrency(perWeek) : "—"}
+      </p>
+      <div className="mt-3 flex items-center gap-2">
+        <label className="text-xs text-muted-foreground whitespace-nowrap">Semanas:</label>
+        <input
+          type="number"
+          min="1"
+          step="1"
+          inputMode="decimal"
+          value={weeks}
+          onChange={(e) => setWeeks(e.target.value)}
+          className="h-8 w-20 rounded-md border border-input bg-transparent px-2 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      </div>
+    </div>
+  );
+}
