@@ -81,10 +81,16 @@ function DashboardPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
         <SummaryCard label="Receitas" value={summary.income} icon={<TrendingUp className="size-5" />} colorClass="text-income" diff={pctDiff(summary.income, prevSummary.income)} />
-        <SummaryCard label="Despesas" value={summary.expenses} icon={<TrendingDown className="size-5" />} colorClass="text-expense" diff={pctDiff(summary.expenses, prevSummary.expenses)} invertColor />
+        <ExpensesBreakdownCard
+          total={summary.expenses}
+          cardExpenses={cardTotal}
+          nonCardExpenses={summary.expenses - cardTotal}
+          diff={pctDiff(summary.expenses, prevSummary.expenses)}
+        />
         <SummaryCard label="Saldo" value={summary.balance} icon={<Wallet className="size-5" />} colorClass="text-primary" diff={balanceDiff} />
+        <WeeklyBalanceCard balance={summary.balance} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-8">
