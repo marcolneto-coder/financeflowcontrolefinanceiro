@@ -174,8 +174,19 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  const persistTagsForTx = useCallback(async (txId: string, tagIds: string[]) => {
+    if (!user) return;
+    await supabase.from("transaction_tags").delete().eq("transaction_id", txId);
+    if (tagIds.length > 0) {
+      await supabase.from("transaction_tags").insert(
+        tagIds.map((tag_id) => ({ transaction_id: txId, tag_id, user_id: user.id }))
+      );
+    }
+  }, [user]);
+
   const addTransaction: FinanceContextType["addTransaction"] = async (input) => {
     if (!user) return;
+    const tagIds = input.tagIds || [];
     if (input.isInstallment && input.totalInstallments > 1) {
       const groupId = uuidv4();
       const per = Math.round((input.amount / input.totalInstallments) * 100) / 100;
@@ -194,7 +205,17 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         ));
       }
       const { data } = await supabase.from("transactions").insert(rows).select("*");
-      if (data) setState((s) => ({ ...s, transactions: [...s.transactions, ...data.map((r) => mapTx(r as TxRow))] }));
+      if (data) {
+        if (tagIds.length) {
+          for (const row of data) await persistTagsForTx(row.id, tagIds);
+        }
+        setState((s) => ({
+          ...s,
+          transactions: [...s.transactions, ...data.map((r) => {
+            const t = mapTx(r as TxRow); t.tagIds = [...tagIds]; return t;
+          })],
+        }));
+      }
       return;
     }
     let finalDate = input.date;
@@ -204,7 +225,20 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     }
     const row = txToRow({ ...input, date: finalDate, currentInstallment: 1 }, user.id);
     const { data } = await supabase.from("transactions").insert(row).select("*").single();
-    if (data) setState((s) => ({ ...s, transactions: [...s.transactions, mapTx(data as TxRow)] }));
+    if (data) {
+      if (tagIds.length) await persistTagsForTx(data.id, tagIds);
+      const t = mapTx(data as TxRow); t.tagIds = [...tagIds];
+      setState((s) => ({ ...s, transactions: [...s.transactions, t] }));
+    }
+  };
+
+  const addTransactionsBulk: FinanceContextType["addTransactionsBulk"] = async (txs) => {
+    if (!user || txs.length === 0) return 0;
+    const rows = txs.map((t) => txToRow({ ...t, currentInstallment: 1 }, user.id));
+    const { data, error } = await supabase.from("transactions").insert(rows).select("*");
+    if (error || !data) return 0;
+    setState((s) => ({ ...s, transactions: [...s.transactions, ...data.map((r) => mapTx(r as TxRow))] }));
+    return data.length;
   };
 
   const updateTransaction: FinanceContextType["updateTransaction"] = async (tx) => {
