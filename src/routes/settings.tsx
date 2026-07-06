@@ -84,15 +84,17 @@ function SettingsPage() {
       </header>
 
       <div className="flex gap-1 p-1 bg-muted rounded-lg mb-8 w-fit flex-wrap">
-        {(["appearance", "categories", "security", "backup"] as const).map((t) => (
+        {(["appearance", "categories", "tags", "security", "backup"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors ${
               tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
             }`}>
-            {t === "appearance" ? "Aparência" : t === "categories" ? "Categorias" : t === "security" ? "Segurança" : "Backup"}
+            {t === "appearance" ? "Aparência" : t === "categories" ? "Categorias" : t === "tags" ? "Etiquetas" : t === "security" ? "Segurança" : "Backup"}
           </button>
         ))}
       </div>
+
+      {tab === "tags" && <TagsSection tags={state.tags} addTag={addTag} updateTag={updateTag} deleteTag={deleteTag} />}
 
       {tab === "appearance" && (
         <div className="space-y-8">
