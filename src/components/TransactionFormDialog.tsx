@@ -236,6 +236,29 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
             )}
           </div>
 
+          {state.tags.length > 0 && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Etiquetas</label>
+              <div className="flex flex-wrap gap-1.5">
+                {state.tags.map((tag) => {
+                  const sel = selectedTags.includes(tag.id);
+                  return (
+                    <button key={tag.id} type="button"
+                      onClick={() => setSelectedTags((prev) => sel ? prev.filter((id) => id !== tag.id) : [...prev, tag.id])}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all"
+                      style={sel
+                        ? { backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }
+                        : { borderColor: tag.color, color: tag.color, backgroundColor: "transparent" }}>
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+
+
           {/* Fixed */}
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={isFixed} onChange={(e) => setIsFixed(e.target.checked)} className="size-4 rounded accent-primary" />
