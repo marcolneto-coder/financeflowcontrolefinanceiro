@@ -8,6 +8,7 @@ import {
   type CreditCard,
   type Category,
   type CardBrand,
+  type Tag,
   applyAccentColor,
   DEFAULT_CATEGORIES,
 } from "./finance-store";
@@ -16,19 +17,30 @@ interface FinanceState {
   transactions: Transaction[];
   categories: Category[];
   creditCards: CreditCard[];
+  tags: Tag[];
   accentColor: string;
 }
 
 interface FinanceContextType {
   state: FinanceState;
   loading: boolean;
-  addTransaction: (tx: Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId">) => Promise<void>;
+  addTransaction: (tx: Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId"> & { tagIds?: string[] }) => Promise<void>;
+  addTransactionsBulk: (txs: Array<Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId">>) => Promise<number>;
   updateTransaction: (tx: Transaction) => Promise<void>;
   updateTransactionAndFuture: (tx: Transaction) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   duplicateToNextMonth: (id: string) => Promise<void>;
+  duplicateTransaction: (id: string) => Promise<void>;
+  bulkDeleteTransactions: (ids: string[]) => Promise<void>;
+  bulkSetCategory: (ids: string[], categoryId: string) => Promise<void>;
+  bulkAddTag: (ids: string[], tagId: string) => Promise<void>;
+  bulkRemoveTag: (ids: string[], tagId: string) => Promise<void>;
+  setTransactionTags: (txId: string, tagIds: string[]) => Promise<void>;
   addCategory: (name: string, type: TransactionType) => Promise<string | null>;
   deleteCategory: (id: string) => Promise<void>;
+  addTag: (name: string, color: string) => Promise<string | null>;
+  updateTag: (tag: Tag) => Promise<void>;
+  deleteTag: (id: string) => Promise<void>;
   addCreditCard: (card: Omit<CreditCard, "id">) => Promise<void>;
   updateCreditCard: (card: CreditCard) => Promise<void>;
   deleteCreditCard: (id: string) => Promise<void>;
@@ -44,6 +56,7 @@ const initialState: FinanceState = {
   transactions: [],
   categories: [],
   creditCards: [],
+  tags: [],
   accentColor: "blue",
 };
 
