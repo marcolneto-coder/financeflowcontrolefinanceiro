@@ -8,6 +8,7 @@ import {
   type CreditCard,
   type Category,
   type CardBrand,
+  type Tag,
   applyAccentColor,
   DEFAULT_CATEGORIES,
 } from "./finance-store";
@@ -16,19 +17,30 @@ interface FinanceState {
   transactions: Transaction[];
   categories: Category[];
   creditCards: CreditCard[];
+  tags: Tag[];
   accentColor: string;
 }
 
 interface FinanceContextType {
   state: FinanceState;
   loading: boolean;
-  addTransaction: (tx: Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId">) => Promise<void>;
+  addTransaction: (tx: Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId"> & { tagIds?: string[] }) => Promise<void>;
+  addTransactionsBulk: (txs: Array<Omit<Transaction, "id" | "currentInstallment" | "installmentGroupId">>) => Promise<number>;
   updateTransaction: (tx: Transaction) => Promise<void>;
   updateTransactionAndFuture: (tx: Transaction) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   duplicateToNextMonth: (id: string) => Promise<void>;
+  duplicateTransaction: (id: string) => Promise<void>;
+  bulkDeleteTransactions: (ids: string[]) => Promise<void>;
+  bulkSetCategory: (ids: string[], categoryId: string) => Promise<void>;
+  bulkAddTag: (ids: string[], tagId: string) => Promise<void>;
+  bulkRemoveTag: (ids: string[], tagId: string) => Promise<void>;
+  setTransactionTags: (txId: string, tagIds: string[]) => Promise<void>;
   addCategory: (name: string, type: TransactionType) => Promise<string | null>;
   deleteCategory: (id: string) => Promise<void>;
+  addTag: (name: string, color: string) => Promise<string | null>;
+  updateTag: (tag: Tag) => Promise<void>;
+  deleteTag: (id: string) => Promise<void>;
   addCreditCard: (card: Omit<CreditCard, "id">) => Promise<void>;
   updateCreditCard: (card: CreditCard) => Promise<void>;
   deleteCreditCard: (id: string) => Promise<void>;
@@ -44,6 +56,7 @@ const initialState: FinanceState = {
   transactions: [],
   categories: [],
   creditCards: [],
+  tags: [],
   accentColor: "blue",
 };
 
@@ -110,11 +123,13 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       return;
     }
     setLoading(true);
-    const [{ data: cats }, { data: cards }, { data: txs }, { data: profile }] = await Promise.all([
+    const [{ data: cats }, { data: cards }, { data: txs }, { data: profile }, { data: tagRows }, { data: txTagRows }] = await Promise.all([
       supabase.from("categories").select("*").order("name"),
       supabase.from("credit_cards").select("*").order("name"),
       supabase.from("transactions").select("*"),
       supabase.from("profiles").select("accent_color").eq("id", user.id).maybeSingle(),
+      supabase.from("tags").select("*").order("name"),
+      supabase.from("transaction_tags").select("transaction_id, tag_id"),
     ]);
 
     const categories: Category[] = (cats || []).map((c) => ({ id: c.id, name: c.name, type: c.type as TransactionType }));
@@ -134,19 +149,44 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       brand: (c.brand ?? "other") as CardBrand,
     }));
 
-    const transactions = (txs || []).map((r) => mapTx(r as TxRow));
+    const tags: Tag[] = (tagRows || []).map((t) => ({ id: t.id, name: t.name, color: t.color ?? "#64748b" }));
+
+    // Build txId -> tagIds map
+    const tagsByTx: Record<string, string[]> = {};
+    for (const r of (txTagRows || [])) {
+      const key = r.transaction_id;
+      if (!tagsByTx[key]) tagsByTx[key] = [];
+      tagsByTx[key].push(r.tag_id);
+    }
+
+    const transactions = (txs || []).map((r) => {
+      const tx = mapTx(r as TxRow);
+      tx.tagIds = tagsByTx[tx.id] || [];
+      return tx;
+    });
 
     const accentColor = profile?.accent_color || "blue";
     applyAccentColor(accentColor);
 
-    setState({ transactions, categories, creditCards, accentColor });
+    setState({ transactions, categories, creditCards, tags, accentColor });
     setLoading(false);
   }, [user]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  const persistTagsForTx = useCallback(async (txId: string, tagIds: string[]) => {
+    if (!user) return;
+    await supabase.from("transaction_tags").delete().eq("transaction_id", txId);
+    if (tagIds.length > 0) {
+      await supabase.from("transaction_tags").insert(
+        tagIds.map((tag_id) => ({ transaction_id: txId, tag_id, user_id: user.id }))
+      );
+    }
+  }, [user]);
+
   const addTransaction: FinanceContextType["addTransaction"] = async (input) => {
     if (!user) return;
+    const tagIds = input.tagIds || [];
     if (input.isInstallment && input.totalInstallments > 1) {
       const groupId = uuidv4();
       const per = Math.round((input.amount / input.totalInstallments) * 100) / 100;
@@ -165,7 +205,17 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         ));
       }
       const { data } = await supabase.from("transactions").insert(rows).select("*");
-      if (data) setState((s) => ({ ...s, transactions: [...s.transactions, ...data.map((r) => mapTx(r as TxRow))] }));
+      if (data) {
+        if (tagIds.length) {
+          for (const row of data) await persistTagsForTx(row.id, tagIds);
+        }
+        setState((s) => ({
+          ...s,
+          transactions: [...s.transactions, ...data.map((r) => {
+            const t = mapTx(r as TxRow); t.tagIds = [...tagIds]; return t;
+          })],
+        }));
+      }
       return;
     }
     let finalDate = input.date;
@@ -175,7 +225,20 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     }
     const row = txToRow({ ...input, date: finalDate, currentInstallment: 1 }, user.id);
     const { data } = await supabase.from("transactions").insert(row).select("*").single();
-    if (data) setState((s) => ({ ...s, transactions: [...s.transactions, mapTx(data as TxRow)] }));
+    if (data) {
+      if (tagIds.length) await persistTagsForTx(data.id, tagIds);
+      const t = mapTx(data as TxRow); t.tagIds = [...tagIds];
+      setState((s) => ({ ...s, transactions: [...s.transactions, t] }));
+    }
+  };
+
+  const addTransactionsBulk: FinanceContextType["addTransactionsBulk"] = async (txs) => {
+    if (!user || txs.length === 0) return 0;
+    const rows = txs.map((t) => txToRow({ ...t, currentInstallment: 1 }, user.id));
+    const { data, error } = await supabase.from("transactions").insert(rows).select("*");
+    if (error || !data) return 0;
+    setState((s) => ({ ...s, transactions: [...s.transactions, ...data.map((r) => mapTx(r as TxRow))] }));
+    return data.length;
   };
 
   const updateTransaction: FinanceContextType["updateTransaction"] = async (tx) => {
@@ -230,6 +293,88 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     }, user.id);
     const { data } = await supabase.from("transactions").insert(row).select("*").single();
     if (data) setState((s) => ({ ...s, transactions: [...s.transactions, mapTx(data as TxRow)] }));
+  };
+
+  const duplicateTransaction: FinanceContextType["duplicateTransaction"] = async (id) => {
+    if (!user) return;
+    const tx = state.transactions.find((t) => t.id === id);
+    if (!tx) return;
+    const row = txToRow({
+      ...tx, description: tx.description + " (cópia)",
+      isInstallment: false, installmentGroupId: undefined, totalInstallments: 1, currentInstallment: 1,
+    }, user.id);
+    const { data } = await supabase.from("transactions").insert(row).select("*").single();
+    if (data) {
+      if (tx.tagIds && tx.tagIds.length) await persistTagsForTx(data.id, tx.tagIds);
+      const nt = mapTx(data as TxRow); nt.tagIds = tx.tagIds ? [...tx.tagIds] : [];
+      setState((s) => ({ ...s, transactions: [...s.transactions, nt] }));
+    }
+  };
+
+  const bulkDeleteTransactions: FinanceContextType["bulkDeleteTransactions"] = async (ids) => {
+    if (ids.length === 0) return;
+    await supabase.from("transactions").delete().in("id", ids);
+    setState((s) => ({ ...s, transactions: s.transactions.filter((t) => !ids.includes(t.id)) }));
+  };
+
+  const bulkSetCategory: FinanceContextType["bulkSetCategory"] = async (ids, categoryId) => {
+    if (ids.length === 0) return;
+    await supabase.from("transactions").update({ category_id: categoryId || null }).in("id", ids);
+    setState((s) => ({ ...s, transactions: s.transactions.map((t) => ids.includes(t.id) ? { ...t, categoryId } : t) }));
+  };
+
+  const bulkAddTag: FinanceContextType["bulkAddTag"] = async (ids, tagId) => {
+    if (!user || ids.length === 0) return;
+    const rows = ids.map((tid) => ({ transaction_id: tid, tag_id: tagId, user_id: user.id }));
+    await supabase.from("transaction_tags").upsert(rows, { onConflict: "transaction_id,tag_id" });
+    setState((s) => ({
+      ...s,
+      transactions: s.transactions.map((t) => {
+        if (!ids.includes(t.id)) return t;
+        const set = new Set(t.tagIds || []);
+        set.add(tagId);
+        return { ...t, tagIds: Array.from(set) };
+      }),
+    }));
+  };
+
+  const bulkRemoveTag: FinanceContextType["bulkRemoveTag"] = async (ids, tagId) => {
+    if (ids.length === 0) return;
+    await supabase.from("transaction_tags").delete().eq("tag_id", tagId).in("transaction_id", ids);
+    setState((s) => ({
+      ...s,
+      transactions: s.transactions.map((t) => ids.includes(t.id) ? { ...t, tagIds: (t.tagIds || []).filter((id) => id !== tagId) } : t),
+    }));
+  };
+
+  const setTransactionTags: FinanceContextType["setTransactionTags"] = async (txId, tagIds) => {
+    await persistTagsForTx(txId, tagIds);
+    setState((s) => ({ ...s, transactions: s.transactions.map((t) => t.id === txId ? { ...t, tagIds: [...tagIds] } : t) }));
+  };
+
+  const addTag: FinanceContextType["addTag"] = async (name, color) => {
+    if (!user) return null;
+    const { data } = await supabase.from("tags").insert({ user_id: user.id, name, color }).select("*").single();
+    if (data) {
+      const tag: Tag = { id: data.id, name: data.name, color: data.color ?? "#64748b" };
+      setState((s) => ({ ...s, tags: [...s.tags, tag] }));
+      return tag.id;
+    }
+    return null;
+  };
+
+  const updateTag: FinanceContextType["updateTag"] = async (tag) => {
+    await supabase.from("tags").update({ name: tag.name, color: tag.color }).eq("id", tag.id);
+    setState((s) => ({ ...s, tags: s.tags.map((t) => t.id === tag.id ? tag : t) }));
+  };
+
+  const deleteTag: FinanceContextType["deleteTag"] = async (id) => {
+    await supabase.from("tags").delete().eq("id", id);
+    setState((s) => ({
+      ...s,
+      tags: s.tags.filter((t) => t.id !== id),
+      transactions: s.transactions.map((t) => ({ ...t, tagIds: (t.tagIds || []).filter((tid) => tid !== id) })),
+    }));
   };
 
   const addCategory: FinanceContextType["addCategory"] = async (name, type) => {
@@ -292,8 +437,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     transactions: state.transactions,
     categories: state.categories,
     creditCards: state.creditCards,
+    tags: state.tags,
     accentColor: state.accentColor,
     exportedAt: new Date().toISOString(),
+    version: 2,
   }, null, 2);
 
   const importBackup: FinanceContextType["importBackup"] = async (json) => {
@@ -301,10 +448,11 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     try {
       const data = JSON.parse(json);
       if (!data.transactions || !data.categories) return false;
-      // Wipe existing
+      // Wipe existing (transaction_tags cascades)
       await supabase.from("transactions").delete().eq("user_id", user.id);
       await supabase.from("credit_cards").delete().eq("user_id", user.id);
       await supabase.from("categories").delete().eq("user_id", user.id);
+      await supabase.from("tags").delete().eq("user_id", user.id);
       // Insert categories first; map old id → new id
       const catIdMap: Record<string, string> = {};
       if (data.categories.length) {
@@ -323,14 +471,34 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         ).select("*");
         (insCards || []).forEach((c, i) => { cardIdMap[data.creditCards[i].id] = c.id; });
       }
+      const tagIdMap: Record<string, string> = {};
+      if (Array.isArray(data.tags) && data.tags.length) {
+        const { data: insTags } = await supabase.from("tags").insert(
+          data.tags.map((t: Tag) => ({ user_id: user.id, name: t.name, color: t.color }))
+        ).select("*");
+        (insTags || []).forEach((t, i) => { tagIdMap[data.tags[i].id] = t.id; });
+      }
+      const txIdMap: Record<string, string> = {};
       if (data.transactions.length) {
-        await supabase.from("transactions").insert(
+        const { data: insTx } = await supabase.from("transactions").insert(
           data.transactions.map((t: Transaction) => txToRow({
             ...t,
             categoryId: catIdMap[t.categoryId] || "",
             creditCardId: t.creditCardId ? cardIdMap[t.creditCardId] : undefined,
           }, user.id))
-        );
+        ).select("id");
+        (insTx || []).forEach((t, i) => { txIdMap[data.transactions[i].id] = t.id; });
+        // Re-attach tags
+        const txTagRows: Array<{ transaction_id: string; tag_id: string; user_id: string }> = [];
+        for (const t of data.transactions as Transaction[]) {
+          const newTxId = txIdMap[t.id];
+          if (!newTxId || !t.tagIds) continue;
+          for (const oldTagId of t.tagIds) {
+            const newTagId = tagIdMap[oldTagId];
+            if (newTagId) txTagRows.push({ transaction_id: newTxId, tag_id: newTagId, user_id: user.id });
+          }
+        }
+        if (txTagRows.length) await supabase.from("transaction_tags").insert(txTagRows);
       }
       if (data.accentColor) await setAccentColor(data.accentColor);
       await refresh();
@@ -343,8 +511,12 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
   return (
     <FinanceContext.Provider value={{
-      state, loading, addTransaction, updateTransaction, updateTransactionAndFuture,
-      deleteTransaction, duplicateToNextMonth, addCategory, deleteCategory,
+      state, loading,
+      addTransaction, addTransactionsBulk, updateTransaction, updateTransactionAndFuture,
+      deleteTransaction, duplicateToNextMonth, duplicateTransaction,
+      bulkDeleteTransactions, bulkSetCategory, bulkAddTag, bulkRemoveTag, setTransactionTags,
+      addCategory, deleteCategory,
+      addTag, updateTag, deleteTag,
       addCreditCard, updateCreditCard, deleteCreditCard, setAccentColor,
       exportBackup, importBackup, refresh,
     }}>

@@ -15,8 +15,9 @@ interface Props {
 }
 
 export function TransactionFormDialog({ editTransaction, onClose }: Props) {
-  const { state, addTransaction, updateTransactionAndFuture, addCategory } = useFinance();
+  const { state, addTransaction, updateTransactionAndFuture, setTransactionTags, addCategory } = useFinance();
   const isEdit = !!editTransaction;
+  const [selectedTags, setSelectedTags] = useState<string[]>(editTransaction?.tagIds || []);
 
   const [type, setType] = useState<TransactionType>(editTransaction?.type || "expense");
   const [description, setDescription] = useState(editTransaction?.description || "");
@@ -75,13 +76,13 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
     return items;
   }, [isInstallment, parsedAmount, parsedInstallments, billingMonth, installmentValue]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!description.trim() || parsedAmount <= 0) return;
 
     const hasCreditCard = type === "expense" && creditCardId;
 
     if (isEdit && editTransaction) {
-      updateTransactionAndFuture({
+      await updateTransactionAndFuture({
         ...editTransaction,
         description: description.trim(),
         amount: parsedAmount,
@@ -94,8 +95,9 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
       });
+      await setTransactionTags(editTransaction.id, selectedTags);
     } else {
-      addTransaction({
+      await addTransaction({
         description: description.trim(),
         amount: parsedAmount,
         type,
@@ -108,6 +110,7 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         store: store || undefined,
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
+        tagIds: selectedTags,
       });
     }
     onClose();
@@ -232,6 +235,29 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
               </div>
             )}
           </div>
+
+          {state.tags.length > 0 && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Etiquetas</label>
+              <div className="flex flex-wrap gap-1.5">
+                {state.tags.map((tag) => {
+                  const sel = selectedTags.includes(tag.id);
+                  return (
+                    <button key={tag.id} type="button"
+                      onClick={() => setSelectedTags((prev) => sel ? prev.filter((id) => id !== tag.id) : [...prev, tag.id])}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all"
+                      style={sel
+                        ? { backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }
+                        : { borderColor: tag.color, color: tag.color, backgroundColor: "transparent" }}>
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+
 
           {/* Fixed */}
           <label className="flex items-center gap-3 cursor-pointer">

@@ -8,6 +8,8 @@ import {
   Menu,
   X,
   LogOut,
+  Calculator,
+  FileUp,
 } from "lucide-react";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,6 +20,8 @@ const items = [
   { title: "Transações", url: "/transactions", icon: ArrowLeftRight },
   { title: "Cartões", url: "/cards", icon: CreditCard },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
+  { title: "Simulador", url: "/simulator", icon: Calculator },
+  { title: "Importar", url: "/import", icon: FileUp },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 

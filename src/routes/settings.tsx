@@ -28,8 +28,8 @@ const ACCENT_OPTIONS = [
 ];
 
 function SettingsPage() {
-  const { state, setAccentColor, deleteCategory, exportBackup, importBackup } = useFinance();
-  const [tab, setTab] = useState<"appearance" | "categories" | "security" | "backup">("appearance");
+  const { state, setAccentColor, deleteCategory, exportBackup, importBackup, addTag, updateTag, deleteTag } = useFinance();
+  const [tab, setTab] = useState<"appearance" | "categories" | "tags" | "security" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,15 +84,17 @@ function SettingsPage() {
       </header>
 
       <div className="flex gap-1 p-1 bg-muted rounded-lg mb-8 w-fit flex-wrap">
-        {(["appearance", "categories", "security", "backup"] as const).map((t) => (
+        {(["appearance", "categories", "tags", "security", "backup"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors ${
               tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
             }`}>
-            {t === "appearance" ? "Aparência" : t === "categories" ? "Categorias" : t === "security" ? "Segurança" : "Backup"}
+            {t === "appearance" ? "Aparência" : t === "categories" ? "Categorias" : t === "tags" ? "Etiquetas" : t === "security" ? "Segurança" : "Backup"}
           </button>
         ))}
       </div>
+
+      {tab === "tags" && <TagsSection tags={state.tags} addTag={addTag} updateTag={updateTag} deleteTag={deleteTag} />}
 
       {tab === "appearance" && (
         <div className="space-y-8">
@@ -243,6 +245,79 @@ function SettingsPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const TAG_COLORS = ["#64748b", "#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899"];
+
+function TagsSection({
+  tags,
+  addTag,
+  updateTag,
+  deleteTag,
+}: {
+  tags: import("@/lib/finance-store").Tag[];
+  addTag: (name: string, color: string) => Promise<string | null>;
+  updateTag: (t: import("@/lib/finance-store").Tag) => Promise<void>;
+  deleteTag: (id: string) => Promise<void>;
+}) {
+  const [name, setName] = useState("");
+  const [color, setColor] = useState(TAG_COLORS[0]);
+
+  const handleAdd = async () => {
+    if (!name.trim()) return;
+    await addTag(name.trim(), color);
+    setName("");
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="glass-card p-4 md:p-6">
+        <h2 className="text-base md:text-lg font-medium mb-4">Nova etiqueta</h2>
+        <div className="flex flex-col md:flex-row gap-3">
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: Viagem 2026, Reembolsável..."
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            className="flex-1 px-3 py-2 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+          <div className="flex gap-1.5 items-center">
+            {TAG_COLORS.map((c) => (
+              <button key={c} onClick={() => setColor(c)}
+                className={`size-6 rounded-full transition-all ${color === c ? "ring-2 ring-offset-2 ring-offset-card ring-ring scale-110" : ""}`}
+                style={{ backgroundColor: c }} />
+            ))}
+          </div>
+          <button onClick={handleAdd} disabled={!name.trim()}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:opacity-90">
+            Criar
+          </button>
+        </div>
+      </div>
+
+      <div className="glass-card p-4 md:p-6">
+        <h2 className="text-base md:text-lg font-medium mb-4">Suas etiquetas ({tags.length})</h2>
+        {tags.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Nenhuma etiqueta ainda.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <div key={tag.id} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border"
+                style={{ borderColor: tag.color, color: tag.color, backgroundColor: tag.color + "15" }}>
+                <span>{tag.name}</span>
+                <button onClick={() => {
+                  const newColor = TAG_COLORS[(TAG_COLORS.indexOf(tag.color) + 1) % TAG_COLORS.length];
+                  updateTag({ ...tag, color: newColor });
+                }} className="opacity-0 group-hover:opacity-100 hover:scale-110" title="Trocar cor">
+                  <Palette className="size-3" />
+                </button>
+                <button onClick={() => deleteTag(tag.id)} className="opacity-0 group-hover:opacity-100 hover:scale-110" title="Excluir">
+                  <Trash2 className="size-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

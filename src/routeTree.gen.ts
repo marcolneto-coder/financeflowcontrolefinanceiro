@@ -10,15 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as SimulatorRouteImport } from './routes/simulator'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ImportRouteImport } from './routes/import'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CardsCardIdInvoiceRouteImport } from './routes/cards.$cardId.invoice'
 
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
   path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimulatorRoute = SimulatorRouteImport.update({
+  id: '/simulator',
+  path: '/simulator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -29,6 +37,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportRoute = ImportRouteImport.update({
+  id: '/import',
+  path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CardsRoute = CardsRouteImport.update({
@@ -46,31 +59,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CardsCardIdInvoiceRoute = CardsCardIdInvoiceRouteImport.update({
+  id: '/$cardId/invoice',
+  path: '/$cardId/invoice',
+  getParentRoute: () => CardsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/cards': typeof CardsRoute
+  '/cards': typeof CardsRouteWithChildren
+  '/import': typeof ImportRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/simulator': typeof SimulatorRoute
   '/transactions': typeof TransactionsRoute
+  '/cards/$cardId/invoice': typeof CardsCardIdInvoiceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/cards': typeof CardsRoute
+  '/cards': typeof CardsRouteWithChildren
+  '/import': typeof ImportRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/simulator': typeof SimulatorRoute
   '/transactions': typeof TransactionsRoute
+  '/cards/$cardId/invoice': typeof CardsCardIdInvoiceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/cards': typeof CardsRoute
+  '/cards': typeof CardsRouteWithChildren
+  '/import': typeof ImportRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/simulator': typeof SimulatorRoute
   '/transactions': typeof TransactionsRoute
+  '/cards/$cardId/invoice': typeof CardsCardIdInvoiceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,27 +105,44 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/cards'
+    | '/import'
     | '/reports'
     | '/settings'
+    | '/simulator'
     | '/transactions'
+    | '/cards/$cardId/invoice'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/cards' | '/reports' | '/settings' | '/transactions'
+  to:
+    | '/'
+    | '/auth'
+    | '/cards'
+    | '/import'
+    | '/reports'
+    | '/settings'
+    | '/simulator'
+    | '/transactions'
+    | '/cards/$cardId/invoice'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/cards'
+    | '/import'
     | '/reports'
     | '/settings'
+    | '/simulator'
     | '/transactions'
+    | '/cards/$cardId/invoice'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
-  CardsRoute: typeof CardsRoute
+  CardsRoute: typeof CardsRouteWithChildren
+  ImportRoute: typeof ImportRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
+  SimulatorRoute: typeof SimulatorRoute
   TransactionsRoute: typeof TransactionsRoute
 }
 
@@ -109,6 +153,13 @@ declare module '@tanstack/react-router' {
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulator': {
+      id: '/simulator'
+      path: '/simulator'
+      fullPath: '/simulator'
+      preLoaderRoute: typeof SimulatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -123,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import': {
+      id: '/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cards': {
@@ -146,15 +204,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cards/$cardId/invoice': {
+      id: '/cards/$cardId/invoice'
+      path: '/$cardId/invoice'
+      fullPath: '/cards/$cardId/invoice'
+      preLoaderRoute: typeof CardsCardIdInvoiceRouteImport
+      parentRoute: typeof CardsRoute
+    }
   }
 }
+
+interface CardsRouteChildren {
+  CardsCardIdInvoiceRoute: typeof CardsCardIdInvoiceRoute
+}
+
+const CardsRouteChildren: CardsRouteChildren = {
+  CardsCardIdInvoiceRoute: CardsCardIdInvoiceRoute,
+}
+
+const CardsRouteWithChildren = CardsRoute._addFileChildren(CardsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
-  CardsRoute: CardsRoute,
+  CardsRoute: CardsRouteWithChildren,
+  ImportRoute: ImportRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
+  SimulatorRoute: SimulatorRoute,
   TransactionsRoute: TransactionsRoute,
 }
 export const routeTree = rootRouteImport
