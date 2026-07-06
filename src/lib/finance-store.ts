@@ -43,6 +43,35 @@ export interface Transaction {
   purchaseDate?: string;
   billingMonth?: string; // YYYY-MM
   createdAt?: string;
+  tagIds?: string[];
+}
+
+// Compute the closing/due dates of the billing cycle that contains `date`.
+// Returns { cycleStart, cycleEnd, closingDate, dueDate, invoiceMonth }.
+// invoiceMonth = the month the invoice is due (YYYY-MM).
+export function getBillingCycleFor(
+  date: Date,
+  closingDay: number,
+  dueDay: number,
+): { cycleStart: Date; cycleEnd: Date; closingDate: Date; dueDate: Date; invoiceMonth: string } {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDate();
+  // If purchase is on/before closingDay, invoice closes this month; else next month.
+  const closesThisMonth = day <= closingDay;
+  const closingYear = closesThisMonth ? d.getFullYear() : d.getFullYear() + (d.getMonth() === 11 ? 1 : 0);
+  const closingMonth = closesThisMonth ? d.getMonth() : (d.getMonth() + 1) % 12;
+  const closingDate = new Date(closingYear, closingMonth, closingDay);
+  const cycleEnd = closingDate;
+  const cycleStart = new Date(closingDate);
+  cycleStart.setMonth(cycleStart.getMonth() - 1);
+  cycleStart.setDate(closingDay + 1);
+  // Due date is normally the next dueDay after closing. If dueDay <= closingDay,
+  // due date falls in the following month.
+  const dueYear = dueDay > closingDay ? closingYear : closingYear + (closingMonth === 11 ? 1 : 0);
+  const dueMonth = dueDay > closingDay ? closingMonth : (closingMonth + 1) % 12;
+  const dueDate = new Date(dueYear, dueMonth, dueDay);
+  const invoiceMonth = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, "0")}`;
+  return { cycleStart, cycleEnd, closingDate, dueDate, invoiceMonth };
 }
 
 export function getMonthTransactions(transactions: Transaction[], year: number, month: number) {
