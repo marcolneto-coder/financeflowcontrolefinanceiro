@@ -15,8 +15,9 @@ interface Props {
 }
 
 export function TransactionFormDialog({ editTransaction, onClose }: Props) {
-  const { state, addTransaction, updateTransactionAndFuture, addCategory } = useFinance();
+  const { state, addTransaction, updateTransactionAndFuture, setTransactionTags, addCategory } = useFinance();
   const isEdit = !!editTransaction;
+  const [selectedTags, setSelectedTags] = useState<string[]>(editTransaction?.tagIds || []);
 
   const [type, setType] = useState<TransactionType>(editTransaction?.type || "expense");
   const [description, setDescription] = useState(editTransaction?.description || "");
