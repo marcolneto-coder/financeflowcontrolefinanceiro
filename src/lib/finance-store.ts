@@ -9,6 +9,12 @@ export interface Category {
   type: TransactionType;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface CreditCard {
   id: string;
   name: string;
