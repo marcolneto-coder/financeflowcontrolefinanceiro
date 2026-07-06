@@ -123,11 +123,13 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       return;
     }
     setLoading(true);
-    const [{ data: cats }, { data: cards }, { data: txs }, { data: profile }] = await Promise.all([
+    const [{ data: cats }, { data: cards }, { data: txs }, { data: profile }, { data: tagRows }, { data: txTagRows }] = await Promise.all([
       supabase.from("categories").select("*").order("name"),
       supabase.from("credit_cards").select("*").order("name"),
       supabase.from("transactions").select("*"),
       supabase.from("profiles").select("accent_color").eq("id", user.id).maybeSingle(),
+      supabase.from("tags").select("*").order("name"),
+      supabase.from("transaction_tags").select("transaction_id, tag_id"),
     ]);
 
     const categories: Category[] = (cats || []).map((c) => ({ id: c.id, name: c.name, type: c.type as TransactionType }));
@@ -147,12 +149,26 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       brand: (c.brand ?? "other") as CardBrand,
     }));
 
-    const transactions = (txs || []).map((r) => mapTx(r as TxRow));
+    const tags: Tag[] = (tagRows || []).map((t) => ({ id: t.id, name: t.name, color: t.color ?? "#64748b" }));
+
+    // Build txId -> tagIds map
+    const tagsByTx: Record<string, string[]> = {};
+    for (const r of (txTagRows || [])) {
+      const key = r.transaction_id;
+      if (!tagsByTx[key]) tagsByTx[key] = [];
+      tagsByTx[key].push(r.tag_id);
+    }
+
+    const transactions = (txs || []).map((r) => {
+      const tx = mapTx(r as TxRow);
+      tx.tagIds = tagsByTx[tx.id] || [];
+      return tx;
+    });
 
     const accentColor = profile?.accent_color || "blue";
     applyAccentColor(accentColor);
 
-    setState({ transactions, categories, creditCards, accentColor });
+    setState({ transactions, categories, creditCards, tags, accentColor });
     setLoading(false);
   }, [user]);
 
