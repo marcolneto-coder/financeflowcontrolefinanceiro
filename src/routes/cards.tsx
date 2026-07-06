@@ -114,6 +114,13 @@ function CardsPage() {
                     <span>Fecha dia {card.closingDay}</span>
                     <span>Vence dia {card.dueDay}</span>
                   </div>
+                  <Link
+                    to="/cards/$cardId/invoice"
+                    params={{ cardId: card.id }}
+                    className="mt-3 flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg text-xs font-medium bg-accent/50 hover:bg-accent transition-colors"
+                  >
+                    <Receipt className="size-3.5" /> Ver fatura por ciclo
+                  </Link>
                 </div>
               </div>
             );
