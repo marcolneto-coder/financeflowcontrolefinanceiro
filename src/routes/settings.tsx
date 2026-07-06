@@ -28,8 +28,8 @@ const ACCENT_OPTIONS = [
 ];
 
 function SettingsPage() {
-  const { state, setAccentColor, deleteCategory, exportBackup, importBackup } = useFinance();
-  const [tab, setTab] = useState<"appearance" | "categories" | "security" | "backup">("appearance");
+  const { state, setAccentColor, deleteCategory, exportBackup, importBackup, addTag, updateTag, deleteTag } = useFinance();
+  const [tab, setTab] = useState<"appearance" | "categories" | "tags" | "security" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
   const fileInputRef = useRef<HTMLInputElement>(null);
