@@ -295,6 +295,88 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     if (data) setState((s) => ({ ...s, transactions: [...s.transactions, mapTx(data as TxRow)] }));
   };
 
+  const duplicateTransaction: FinanceContextType["duplicateTransaction"] = async (id) => {
+    if (!user) return;
+    const tx = state.transactions.find((t) => t.id === id);
+    if (!tx) return;
+    const row = txToRow({
+      ...tx, description: tx.description + " (cópia)",
+      isInstallment: false, installmentGroupId: undefined, totalInstallments: 1, currentInstallment: 1,
+    }, user.id);
+    const { data } = await supabase.from("transactions").insert(row).select("*").single();
+    if (data) {
+      if (tx.tagIds && tx.tagIds.length) await persistTagsForTx(data.id, tx.tagIds);
+      const nt = mapTx(data as TxRow); nt.tagIds = tx.tagIds ? [...tx.tagIds] : [];
+      setState((s) => ({ ...s, transactions: [...s.transactions, nt] }));
+    }
+  };
+
+  const bulkDeleteTransactions: FinanceContextType["bulkDeleteTransactions"] = async (ids) => {
+    if (ids.length === 0) return;
+    await supabase.from("transactions").delete().in("id", ids);
+    setState((s) => ({ ...s, transactions: s.transactions.filter((t) => !ids.includes(t.id)) }));
+  };
+
+  const bulkSetCategory: FinanceContextType["bulkSetCategory"] = async (ids, categoryId) => {
+    if (ids.length === 0) return;
+    await supabase.from("transactions").update({ category_id: categoryId || null }).in("id", ids);
+    setState((s) => ({ ...s, transactions: s.transactions.map((t) => ids.includes(t.id) ? { ...t, categoryId } : t) }));
+  };
+
+  const bulkAddTag: FinanceContextType["bulkAddTag"] = async (ids, tagId) => {
+    if (!user || ids.length === 0) return;
+    const rows = ids.map((tid) => ({ transaction_id: tid, tag_id: tagId, user_id: user.id }));
+    await supabase.from("transaction_tags").upsert(rows, { onConflict: "transaction_id,tag_id" });
+    setState((s) => ({
+      ...s,
+      transactions: s.transactions.map((t) => {
+        if (!ids.includes(t.id)) return t;
+        const set = new Set(t.tagIds || []);
+        set.add(tagId);
+        return { ...t, tagIds: Array.from(set) };
+      }),
+    }));
+  };
+
+  const bulkRemoveTag: FinanceContextType["bulkRemoveTag"] = async (ids, tagId) => {
+    if (ids.length === 0) return;
+    await supabase.from("transaction_tags").delete().eq("tag_id", tagId).in("transaction_id", ids);
+    setState((s) => ({
+      ...s,
+      transactions: s.transactions.map((t) => ids.includes(t.id) ? { ...t, tagIds: (t.tagIds || []).filter((id) => id !== tagId) } : t),
+    }));
+  };
+
+  const setTransactionTags: FinanceContextType["setTransactionTags"] = async (txId, tagIds) => {
+    await persistTagsForTx(txId, tagIds);
+    setState((s) => ({ ...s, transactions: s.transactions.map((t) => t.id === txId ? { ...t, tagIds: [...tagIds] } : t) }));
+  };
+
+  const addTag: FinanceContextType["addTag"] = async (name, color) => {
+    if (!user) return null;
+    const { data } = await supabase.from("tags").insert({ user_id: user.id, name, color }).select("*").single();
+    if (data) {
+      const tag: Tag = { id: data.id, name: data.name, color: data.color ?? "#64748b" };
+      setState((s) => ({ ...s, tags: [...s.tags, tag] }));
+      return tag.id;
+    }
+    return null;
+  };
+
+  const updateTag: FinanceContextType["updateTag"] = async (tag) => {
+    await supabase.from("tags").update({ name: tag.name, color: tag.color }).eq("id", tag.id);
+    setState((s) => ({ ...s, tags: s.tags.map((t) => t.id === tag.id ? tag : t) }));
+  };
+
+  const deleteTag: FinanceContextType["deleteTag"] = async (id) => {
+    await supabase.from("tags").delete().eq("id", id);
+    setState((s) => ({
+      ...s,
+      tags: s.tags.filter((t) => t.id !== id),
+      transactions: s.transactions.map((t) => ({ ...t, tagIds: (t.tagIds || []).filter((tid) => tid !== id) })),
+    }));
+  };
+
   const addCategory: FinanceContextType["addCategory"] = async (name, type) => {
     if (!user) return null;
     const { data } = await supabase.from("categories").insert({ user_id: user.id, name, type }).select("*").single();
