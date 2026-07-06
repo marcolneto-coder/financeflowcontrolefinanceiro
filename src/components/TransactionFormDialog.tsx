@@ -82,7 +82,8 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
     const hasCreditCard = type === "expense" && creditCardId;
 
     if (isEdit && editTransaction) {
-      updateTransactionAndFuture({
+    if (isEdit && editTransaction) {
+      await updateTransactionAndFuture({
         ...editTransaction,
         description: description.trim(),
         amount: parsedAmount,
@@ -95,8 +96,9 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
       });
+      await setTransactionTags(editTransaction.id, selectedTags);
     } else {
-      addTransaction({
+      await addTransaction({
         description: description.trim(),
         amount: parsedAmount,
         type,
@@ -109,6 +111,7 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
         store: store || undefined,
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
+        tagIds: selectedTags,
       });
     }
     onClose();
