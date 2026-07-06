@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { formatCurrency, type CardBrand } from "@/lib/finance-store";
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, CreditCard } from "lucide-react";
+import { Plus, Pencil, Trash2, X, CreditCard, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardBrandIcon, CARD_BRANDS } from "@/components/CardBrandIcon";
 
