@@ -76,12 +76,11 @@ export function TransactionFormDialog({ editTransaction, onClose }: Props) {
     return items;
   }, [isInstallment, parsedAmount, parsedInstallments, billingMonth, installmentValue]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!description.trim() || parsedAmount <= 0) return;
 
     const hasCreditCard = type === "expense" && creditCardId;
 
-    if (isEdit && editTransaction) {
     if (isEdit && editTransaction) {
       await updateTransactionAndFuture({
         ...editTransaction,
