@@ -149,9 +149,33 @@ function SimulatorPage() {
         </div>
 
         <div className="glass-card p-4 md:p-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <TrendingDown className="size-4 text-muted-foreground" />
             <h2 className="text-sm font-medium">Impacto na projeção</h2>
+          </div>
+          <div className="mb-4">
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Comparar contra</label>
+            <div className="flex flex-wrap gap-1 p-1 bg-muted rounded-lg">
+              {([
+                { v: "thisCard", label: "Somente este cartão" },
+                { v: "allCards", label: "Todos os cartões" },
+                { v: "allExpenses", label: "Todas as despesas" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setScope(opt.v)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    scope === opt.v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {scope === "thisCard" && !creditCardId && (
+              <p className="text-[11px] text-muted-foreground mt-1.5">Selecione um cartão acima para comparar.</p>
+            )}
           </div>
           {parsedAmount <= 0 ? (
             <p className="text-xs text-muted-foreground py-8 text-center">Informe o valor para ver o impacto.</p>
