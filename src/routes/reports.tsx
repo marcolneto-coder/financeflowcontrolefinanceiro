@@ -527,8 +527,8 @@ function ReportsPage() {
                           ))
                         )}
                         <tr key={`${card.id}-subtotal`} className="border-b-2 border-border font-semibold">
-                          <td className="p-2 sticky left-0 z-30 w-[120px] text-left uppercase text-[10px] tracking-wider bg-primary text-primary-foreground">Subtotal</td>
-                          <td className="p-2 text-left lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-primary/70 text-primary-foreground">{card.name}</td>
+                          <td className="p-2 sticky left-0 z-30 w-[120px] text-right uppercase text-[10px] tracking-wider bg-primary text-primary-foreground">Subtotal</td>
+                          <td className="p-2 text-right lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-primary/70 text-primary-foreground">{card.name}</td>
                           {visibleIdx.map((i) => {
                             const m = monthly[i];
                             return (
