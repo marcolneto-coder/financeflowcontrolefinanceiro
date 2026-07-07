@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { getMonthSummary, formatCurrency, getCurrentMonth, type Transaction } from "@/lib/finance-store";
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, CalendarDays } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const WEEKS_STORAGE_KEY = "dashboard.weeklyBalance.weeks";
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,
@@ -254,6 +256,17 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
 
 function WeeklyBalanceCard({ balance }: { balance: number }) {
   const [weeks, setWeeks] = useState<string>("4");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(WEEKS_STORAGE_KEY);
+      if (saved) setWeeks(saved);
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    try {
+      if (weeks !== "") localStorage.setItem(WEEKS_STORAGE_KEY, weeks);
+    } catch { /* ignore */ }
+  }, [weeks]);
   const weeksNum = parseFloat(weeks.replace(",", "."));
   const perWeek = Number.isFinite(weeksNum) && weeksNum > 0 ? balance / weeksNum : null;
   return (
