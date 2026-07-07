@@ -203,7 +203,10 @@ function SimulatorPage() {
                 );
               })}
               <div className="flex gap-4 pt-3 text-[10px] text-muted-foreground border-t border-border">
-                <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-expense/70" /> Despesas atuais</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="size-2 rounded-full bg-expense/70" />
+                  {scope === "thisCard" ? "Gastos deste cartão" : scope === "allCards" ? "Gastos de todos os cartões" : "Todas as despesas"}
+                </span>
                 <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-primary" /> Parcelamento simulado</span>
               </div>
             </div>
