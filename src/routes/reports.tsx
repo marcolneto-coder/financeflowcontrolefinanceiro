@@ -552,7 +552,7 @@ function ReportsPage() {
                     <td className="p-2 sticky left-0 z-30 w-[120px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">
                       Total
                     </td>
-                    <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">
+                    <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] uppercase text-[11px] tracking-wider bg-primary/70 text-primary-foreground">
                       Todos os cartões
                     </td>
                     {visibleIdx.map((i) => {
