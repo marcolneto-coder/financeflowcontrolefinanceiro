@@ -26,6 +26,7 @@ function SimulatorPage() {
   const [categoryId, setCategoryId] = useState("");
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState(false);
+  const [scope, setScope] = useState<"thisCard" | "allCards" | "allExpenses">("thisCard");
 
   const parsedAmount = parseFloat(amount.replace(",", ".")) || 0;
   const parsedInstallments = Math.max(1, parseInt(installments) || 1);
