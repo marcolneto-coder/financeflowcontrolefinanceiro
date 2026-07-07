@@ -42,8 +42,14 @@ function SimulatorPage() {
       const m = (now.month + i) % 12;
       const y = now.year + Math.floor((now.month + i) / 12);
       const existing = state.transactions
-        .filter((t) => t.type === "expense")
         .filter((t) => {
+          if (t.type !== "expense") return false;
+          if (scope === "thisCard") {
+            if (!creditCardId) return false;
+            if (t.creditCardId !== creditCardId) return false;
+          } else if (scope === "allCards") {
+            if (!t.creditCardId) return false;
+          }
           const d = new Date(t.date + "T12:00:00");
           return d.getFullYear() === y && d.getMonth() === m;
         })
@@ -52,7 +58,7 @@ function SimulatorPage() {
       rows.push({ label: `${MONTHS[m]}/${String(y).slice(2)}`, existing, simulated, y, m });
     }
     return rows;
-  }, [parsedInstallments, perInstallment, state.transactions, now.year, now.month]);
+  }, [parsedInstallments, perInstallment, state.transactions, now.year, now.month, scope, creditCardId]);
 
   const maxBar = Math.max(1, ...projection.map((p) => p.existing + p.simulated));
 
