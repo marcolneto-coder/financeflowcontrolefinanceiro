@@ -110,8 +110,16 @@ function TransactionsPage() {
         if (onlyInstallment && !t.isInstallment) return false;
         return true;
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment, searchAll, hasActiveSearch]);
+      .sort((a, b) => {
+        const dir = sortDir === "asc" ? 1 : -1;
+        let cmp = 0;
+        if (sortField === "date") cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+        else if (sortField === "amount") cmp = a.amount - b.amount;
+        else if (sortField === "description") cmp = a.description.localeCompare(b.description, "pt-BR", { sensitivity: "base" });
+        else if (sortField === "store") cmp = (a.store || "").localeCompare(b.store || "", "pt-BR", { sensitivity: "base" });
+        return cmp * dir;
+      });
+  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment, searchAll, hasActiveSearch, sortField, sortDir]);
 
   const clearSearch = () => {
     setQ(""); setFromDate(""); setToDate(""); setCardFilter(""); setCategoryFilter("");
