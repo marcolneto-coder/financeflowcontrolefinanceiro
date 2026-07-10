@@ -306,21 +306,21 @@ function TransactionsPage() {
                     isHighlighted ? "bg-primary/10" : "hover:bg-accent/15"
                   }`}
                 >
-                  <div className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-4">
-                    {/* Type indicator + icon */}
-                    <div className="relative shrink-0">
-                      <span
-                        className={`absolute -left-4 md:-left-5 top-1/2 -translate-y-1/2 h-8 w-1 rounded-r ${
-                          isIncome ? "bg-income" : "bg-expense"
-                        }`}
-                      />
-                      <div
-                        className={`size-11 rounded-2xl flex items-center justify-center ${
-                          isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
-                        }`}
-                      >
-                        <TypeIcon className="size-5" />
-                      </div>
+                  <div className="flex items-center gap-3 md:gap-4 pl-5 pr-4 md:pl-6 md:pr-5 py-4">
+                    {/* Type indicator */}
+                    <span
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1 rounded-r ${
+                        isIncome ? "bg-income" : "bg-expense"
+                      }`}
+                    />
+
+                    {/* Icon */}
+                    <div
+                      className={`size-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                        isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
+                      }`}
+                    >
+                      <TypeIcon className="size-5" />
                     </div>
 
                     {/* Main info */}
@@ -337,7 +337,7 @@ function TransactionsPage() {
                             </span>
                           )}
                           {tx.isInstallment && (
-                            <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
+                            <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
                               {tx.currentInstallment}/{tx.totalInstallments}
                             </span>
                           )}
@@ -387,7 +387,7 @@ function TransactionsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="hidden sm:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="hidden sm:flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
                       <button
                         onClick={() => duplicateToNextMonth(tx.id)}
                         title="Duplicar para próximo mês"
