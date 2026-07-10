@@ -290,70 +290,156 @@ function TransactionsPage() {
           </Button>
         </div>
       ) : (
-        <div className="glass-card divide-y divide-border/40 overflow-hidden">
-          {visibleTx.map((tx) => {
-            const cat = state.categories.find((c) => c.id === tx.categoryId);
-            const card = tx.creditCardId ? state.creditCards.find((c) => c.id === tx.creditCardId) : null;
-            const isIncome = tx.type === "income";
-            const isHighlighted = highlightId === tx.id;
-            const TypeIcon = isIncome ? TrendingUp : TrendingDown;
-            return (
-              <div
-                key={tx.id}
-                ref={isHighlighted ? highlightRef : undefined}
-                className={`relative flex items-center gap-3 md:gap-4 px-3 md:px-4 py-3 hover:bg-accent/20 transition-colors group ${isHighlighted ? "bg-primary/10" : ""}`}
-              >
-                <span className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-r ${isIncome ? "bg-income" : "bg-expense"}`} />
-                <div className={`size-10 md:size-11 rounded-xl flex items-center justify-center shrink-0 ${isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"}`}>
-                  <TypeIcon className="size-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-sm font-semibold truncate">{tx.description}</p>
-                    {tx.isFixed && (
-                      <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">
-                        <Repeat className="size-2.5" />Fixa
-                      </span>
-                    )}
-                    {tx.isInstallment && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 shrink-0">
-                        {tx.currentInstallment}/{tx.totalInstallments}
-                      </span>
-                    )}
+        <div className="glass-card overflow-hidden">
+          <ul className="divide-y divide-border/40">
+            {visibleTx.map((tx) => {
+              const cat = state.categories.find((c) => c.id === tx.categoryId);
+              const card = tx.creditCardId ? state.creditCards.find((c) => c.id === tx.creditCardId) : null;
+              const isIncome = tx.type === "income";
+              const isHighlighted = highlightId === tx.id;
+              const TypeIcon = isIncome ? TrendingUp : TrendingDown;
+              return (
+                <li
+                  key={tx.id}
+                  ref={isHighlighted ? highlightRef : undefined}
+                  className={`relative group transition-all duration-200 ${
+                    isHighlighted ? "bg-primary/10" : "hover:bg-accent/15"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-4">
+                    {/* Type indicator + icon */}
+                    <div className="relative shrink-0">
+                      <span
+                        className={`absolute -left-4 md:-left-5 top-1/2 -translate-y-1/2 h-8 w-1 rounded-r ${
+                          isIncome ? "bg-income" : "bg-expense"
+                        }`}
+                      />
+                      <div
+                        className={`size-11 rounded-2xl flex items-center justify-center ${
+                          isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
+                        }`}
+                      >
+                        <TypeIcon className="size-5" />
+                      </div>
+                    </div>
+
+                    {/* Main info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <p className="text-[15px] font-semibold tracking-tight truncate text-foreground">
+                          {tx.description}
+                        </p>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {tx.isFixed && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                              <Repeat className="size-2.5" />
+                              <span className="hidden sm:inline">Fixa</span>
+                            </span>
+                          )}
+                          {tx.isInstallment && (
+                            <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
+                              {tx.currentInstallment}/{tx.totalInstallments}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar className="size-3.5 opacity-70" />
+                          {new Date(tx.date + "T12:00:00").toLocaleDateString("pt-BR")}
+                        </span>
+                        {cat && (
+                          <>
+                            <span className="text-border">•</span>
+                            <span className="truncate max-w-[120px] sm:max-w-none">{cat.name}</span>
+                          </>
+                        )}
+                        {card && (
+                          <>
+                            <span className="text-border">•</span>
+                            <span className="inline-flex items-center gap-1.5 truncate max-w-[140px] sm:max-w-none">
+                              <CreditCardIcon className="size-3.5 opacity-70" />
+                              {card.name}
+                            </span>
+                          </>
+                        )}
+                        {tx.store && (
+                          <>
+                            <span className="text-border">•</span>
+                            <span className="truncate max-w-[140px] sm:max-w-none">{tx.store}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="text-right shrink-0 min-w-[90px] md:min-w-[110px]">
+                      <p
+                        className={`text-base md:text-lg font-bold tabular-nums tracking-tight ${
+                          isIncome ? "text-income" : "text-expense"
+                        }`}
+                      >
+                        {isIncome ? "+" : "−"} {formatCurrency(tx.amount)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                        {isIncome ? "Receita" : "Despesa"}
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="hidden sm:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button
+                        onClick={() => duplicateToNextMonth(tx.id)}
+                        title="Duplicar para próximo mês"
+                        className="p-2 rounded-xl hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Copy className="size-4" />
+                      </button>
+                      <button
+                        onClick={() => { setEditTx(tx); setShowForm(true); }}
+                        title="Editar"
+                        className="p-2 rounded-xl hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Pencil className="size-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteTransaction(tx.id)}
+                        title="Excluir"
+                        className="p-2 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar className="size-3" />
-                      {new Date(tx.date + "T12:00:00").toLocaleDateString("pt-BR")}
-                    </span>
-                    {cat && <><span className="opacity-40">•</span><span>{cat.name}</span></>}
-                    {card && (
-                      <><span className="opacity-40">•</span>
-                      <span className="inline-flex items-center gap-1"><CreditCardIcon className="size-3" />{card.name}</span></>
-                    )}
-                    {tx.store && <><span className="opacity-40">•</span><span className="truncate">{tx.store}</span></>}
+
+                  {/* Mobile actions row */}
+                  <div className="sm:hidden flex items-center justify-end gap-1 px-4 pb-3 -mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => duplicateToNextMonth(tx.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Copy className="size-3.5" />
+                      Duplicar
+                    </button>
+                    <button
+                      onClick={() => { setEditTx(tx); setShowForm(true); }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Pencil className="size-3.5" />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => deleteTransaction(tx.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="size-3.5" />
+                      Excluir
+                    </button>
                   </div>
-                </div>
-                <p className={`text-sm md:text-base font-bold tabular-nums whitespace-nowrap ${isIncome ? "text-income" : "text-expense"}`}>
-                  {isIncome ? "+" : "−"} {formatCurrency(tx.amount)}
-                </p>
-                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => duplicateToNextMonth(tx.id)} title="Duplicar para próximo mês"
-                    className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
-                    <Copy className="size-3.5" />
-                  </button>
-                  <button onClick={() => { setEditTx(tx); setShowForm(true); }} title="Editar"
-                    className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
-                    <Pencil className="size-3.5" />
-                  </button>
-                  <button onClick={() => deleteTransaction(tx.id)} title="Excluir"
-                    className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
-                    <Trash2 className="size-3.5" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
