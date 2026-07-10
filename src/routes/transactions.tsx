@@ -234,24 +234,47 @@ function TransactionsPage() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <button onClick={() => goMonth(-1)} className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent transition-colors">←</button>
-          <span className="text-sm font-medium min-w-[140px] text-center">
+      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 mb-4">
+        <div className="flex items-center gap-1 glass-card p-1">
+          <button onClick={() => goMonth(-1)} className="px-3 py-1.5 text-sm rounded-lg hover:bg-accent transition-colors">←</button>
+          <span className="text-sm font-medium min-w-[140px] text-center px-2">
             {searchAll && hasActiveSearch ? "Todos os meses" : `${MONTHS[month]} ${year}`}
           </span>
-          <button onClick={() => goMonth(1)} className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent transition-colors">→</button>
+          <button onClick={() => goMonth(1)} className="px-3 py-1.5 text-sm rounded-lg hover:bg-accent transition-colors">→</button>
         </div>
-        <div className="flex gap-1 sm:ml-auto">
+        <div className="flex gap-1 sm:ml-auto glass-card p-1">
           {(["all", "income", "expense"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                filter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+                filter === f ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-accent"
               }`}>
               {f === "all" ? "Todas" : f === "income" ? "Receitas" : "Despesas"}
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Sort bar */}
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ordenar:</span>
+        {([
+          { f: "date" as const, label: "Data" },
+          { f: "description" as const, label: "Nome" },
+          { f: "store" as const, label: "Estabelecimento" },
+          { f: "amount" as const, label: "Valor" },
+        ]).map(({ f, label }) => {
+          const active = sortField === f;
+          const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+          return (
+            <button key={f} onClick={() => toggleSort(f)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
+                active ? "bg-primary/15 text-primary ring-1 ring-primary/30" : "bg-muted/40 text-muted-foreground hover:bg-muted"
+              }`}>
+              {label}
+              <Icon className="size-3" />
+            </button>
+          );
+        })}
       </div>
 
       {visibleTx.length === 0 ? (
@@ -263,47 +286,64 @@ function TransactionsPage() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-1">
+        <div className="glass-card divide-y divide-border/40 overflow-hidden">
           {visibleTx.map((tx) => {
             const cat = state.categories.find((c) => c.id === tx.categoryId);
             const card = tx.creditCardId ? state.creditCards.find((c) => c.id === tx.creditCardId) : null;
             const isIncome = tx.type === "income";
             const isHighlighted = highlightId === tx.id;
+            const TypeIcon = isIncome ? TrendingUp : TrendingDown;
             return (
               <div
                 key={tx.id}
                 ref={isHighlighted ? highlightRef : undefined}
-                className={`flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-accent/30 transition-colors group ${isHighlighted ? "ring-2 ring-primary bg-primary/10" : ""}`}
+                className={`relative flex items-center gap-3 md:gap-4 px-3 md:px-4 py-3 hover:bg-accent/20 transition-colors group ${isHighlighted ? "bg-primary/10" : ""}`}
               >
-
-                <div className={`size-8 md:size-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium ${isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"}`}>
-                  {tx.description.charAt(0).toUpperCase()}
+                <span className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-r ${isIncome ? "bg-income" : "bg-expense"}`} />
+                <div className={`size-10 md:size-11 rounded-xl flex items-center justify-center shrink-0 ${isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"}`}>
+                  <TypeIcon className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs md:text-sm font-medium truncate">{tx.description}</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-                    {cat?.name || "Sem categoria"}
-                    {card ? ` • ${card.name}` : ""}
-                    {tx.store ? ` • ${tx.store}` : ""}
-                    {tx.isInstallment ? ` • Parcela ${tx.currentInstallment}/${tx.totalInstallments}` : ""}
-                    {tx.isFixed ? " • Fixa" : ""}
-                    {" • "}{new Date(tx.date + "T12:00:00").toLocaleDateString("pt-BR")}
-                  </p>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-sm font-semibold truncate">{tx.description}</p>
+                    {tx.isFixed && (
+                      <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">
+                        <Repeat className="size-2.5" />Fixa
+                      </span>
+                    )}
+                    {tx.isInstallment && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 shrink-0">
+                        {tx.currentInstallment}/{tx.totalInstallments}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="size-3" />
+                      {new Date(tx.date + "T12:00:00").toLocaleDateString("pt-BR")}
+                    </span>
+                    {cat && <><span className="opacity-40">•</span><span>{cat.name}</span></>}
+                    {card && (
+                      <><span className="opacity-40">•</span>
+                      <span className="inline-flex items-center gap-1"><CreditCardIcon className="size-3" />{card.name}</span></>
+                    )}
+                    {tx.store && <><span className="opacity-40">•</span><span className="truncate">{tx.store}</span></>}
+                  </div>
                 </div>
-                <p className={`text-xs md:text-sm font-semibold tabular-nums whitespace-nowrap ${isIncome ? "text-income" : "text-expense"}`}>
-                  {isIncome ? "+" : "-"} {formatCurrency(tx.amount)}
+                <p className={`text-sm md:text-base font-bold tabular-nums whitespace-nowrap ${isIncome ? "text-income" : "text-expense"}`}>
+                  {isIncome ? "+" : "−"} {formatCurrency(tx.amount)}
                 </p>
-                <div className="flex gap-1">
+                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => duplicateToNextMonth(tx.id)} title="Duplicar para próximo mês"
-                    className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
+                    className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
                     <Copy className="size-3.5" />
                   </button>
                   <button onClick={() => { setEditTx(tx); setShowForm(true); }} title="Editar"
-                    className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
+                    className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
                     <Pencil className="size-3.5" />
                   </button>
                   <button onClick={() => deleteTransaction(tx.id)} title="Excluir"
-                    className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                    className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                     <Trash2 className="size-3.5" />
                   </button>
                 </div>
