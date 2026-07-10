@@ -137,19 +137,19 @@ function TransactionsPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl pt-16 md:pt-8">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <p className="text-sm text-muted-foreground mb-1">Gerenciar</p>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Transações</h1>
+          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1.5">Gerenciar</p>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight font-display">Transações</h1>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowSearch((s) => !s)}>
-            <SlidersHorizontal className="size-4" />
-            <span className="hidden sm:inline">Buscar</span>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button variant="outline" size="sm" onClick={() => setShowSearch((s) => !s)} className="flex-1 sm:flex-none">
+            <SlidersHorizontal className="size-4 mr-2" />
+            <span>Buscar</span>
           </Button>
-          <Button onClick={() => { setEditTx(null); setShowForm(true); }}>
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">Nova transação</span>
+          <Button size="sm" onClick={() => { setEditTx(null); setShowForm(true); }} className="flex-1 sm:flex-none">
+            <Plus className="size-4 mr-2" />
+            <span>Nova</span>
           </Button>
         </div>
       </header>
