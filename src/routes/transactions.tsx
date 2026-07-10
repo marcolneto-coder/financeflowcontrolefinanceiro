@@ -255,26 +255,30 @@ function TransactionsPage() {
       </div>
 
       {/* Sort bar */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ordenar:</span>
-        {([
-          { f: "date" as const, label: "Data" },
-          { f: "description" as const, label: "Nome" },
-          { f: "store" as const, label: "Estabelecimento" },
-          { f: "amount" as const, label: "Valor" },
-        ]).map(({ f, label }) => {
-          const active = sortField === f;
-          const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
-          return (
-            <button key={f} onClick={() => toggleSort(f)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
-                active ? "bg-primary/15 text-primary ring-1 ring-primary/30" : "bg-muted/40 text-muted-foreground hover:bg-muted"
-              }`}>
-              {label}
-              <Icon className="size-3" />
-            </button>
-          );
-        })}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium shrink-0">Ordenar por</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {([
+            { f: "date" as const, label: "Data" },
+            { f: "description" as const, label: "Nome" },
+            { f: "store" as const, label: "Estabelecimento" },
+            { f: "amount" as const, label: "Valor" },
+          ]).map(({ f, label }) => {
+            const active = sortField === f;
+            const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+            return (
+              <button key={f} onClick={() => toggleSort(f)}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-full transition-all ${
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}>
+                {label}
+                <Icon className={`size-3 transition-transform ${active ? "opacity-100" : "opacity-60"}`} />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {visibleTx.length === 0 ? (
