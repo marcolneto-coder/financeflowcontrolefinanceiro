@@ -387,7 +387,7 @@ function TransactionsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="hidden sm:flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="hidden sm:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <button
                         onClick={() => duplicateToNextMonth(tx.id)}
                         title="Duplicar para próximo mês"
