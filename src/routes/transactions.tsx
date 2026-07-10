@@ -56,7 +56,7 @@ function TransactionsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [highlightId, setHighlightId] = useState<string | undefined>(search.highlight);
-  const highlightRef = useRef<HTMLDivElement | null>(null);
+  const highlightRef = useRef<HTMLLIElement | null>(null);
 
   useEffect(() => {
     if (search.year !== undefined) setYear(search.year);
