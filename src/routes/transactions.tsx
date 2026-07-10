@@ -306,10 +306,10 @@ function TransactionsPage() {
                     isHighlighted ? "bg-primary/10" : "hover:bg-accent/15"
                   }`}
                 >
-                  <div className="flex items-center gap-3 md:gap-4 pl-5 pr-4 md:pl-6 md:pr-5 py-4">
+                  <div className="flex items-center gap-3 md:gap-4 pl-5 pr-4 md:pl-6 md:pr-5 py-[18px]">
                     {/* Type indicator */}
                     <span
-                      className={`absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1 rounded-r ${
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 h-9 w-0.5 rounded-r ${
                         isIncome ? "bg-income" : "bg-expense"
                       }`}
                     />
