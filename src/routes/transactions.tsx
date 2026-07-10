@@ -39,6 +39,20 @@ function TransactionsPage() {
   const [year, setYear] = useState(search.year ?? current.year);
   const [month, setMonth] = useState(search.month ?? current.month);
   const [filter, setFilter] = useState<"all" | TransactionType>("all");
+  const [sortField, setSortField] = useState<SortField>(() => {
+    if (typeof localStorage === "undefined") return "date";
+    return (localStorage.getItem("tx-sort-field") as SortField) || "date";
+  });
+  const [sortDir, setSortDir] = useState<SortDir>(() => {
+    if (typeof localStorage === "undefined") return "desc";
+    return (localStorage.getItem("tx-sort-dir") as SortDir) || "desc";
+  });
+  useEffect(() => { localStorage.setItem("tx-sort-field", sortField); }, [sortField]);
+  useEffect(() => { localStorage.setItem("tx-sort-dir", sortDir); }, [sortDir]);
+  const toggleSort = (f: SortField) => {
+    if (sortField === f) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortField(f); setSortDir(f === "date" || f === "amount" ? "desc" : "asc"); }
+  };
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [highlightId, setHighlightId] = useState<string | undefined>(search.highlight);
