@@ -96,73 +96,57 @@ function DashboardPage() {
         <WeeklyBalanceCard balance={summary.balance} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-8">
-        <div className="lg:col-span-3">
-          <h2 className="text-base md:text-lg font-medium mb-4">Transações Recentes</h2>
-          {recentTx.length === 0 ? (
-            <div className="glass-card p-8 text-center text-muted-foreground text-sm">
-              Nenhuma transação neste mês. Adicione uma na aba Transações.
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {recentTx.map((tx) => (
-                <TransactionRow key={tx.id} tx={tx} categories={state.categories} cards={state.creditCards} />
-              ))}
-            </div>
-          )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <div>
+          <h2 className="text-base md:text-lg font-medium mb-4">Gastos no Cartão</h2>
+          <div className="glass-card p-4 md:p-6">
+            <p className="text-xl md:text-2xl font-semibold tabular-nums">{formatCurrency(cardTotal)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {cardExpenses.length} lançamento{cardExpenses.length !== 1 ? "s" : ""} neste mês
+            </p>
+            {state.creditCards.map((card) => {
+              const spent = cardExpenses
+                .filter((t) => t.creditCardId === card.id)
+                .reduce((s, t) => s + t.amount, 0);
+              if (spent === 0) return null;
+              const pct = card.limit > 0 ? (spent / card.limit) * 100 : 0;
+              return (
+                <div key={card.id} className="mt-4">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">{card.name} •••• {card.lastDigits}</span>
+                    <span className="tabular-nums">{formatCurrency(spent)}</span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+            {state.creditCards.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-3">Nenhum cartão cadastrado.</p>
+            )}
+          </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
-          <div>
-            <h2 className="text-base md:text-lg font-medium mb-4">Gastos no Cartão</h2>
-            <div className="glass-card p-4 md:p-6">
-              <p className="text-xl md:text-2xl font-semibold tabular-nums">{formatCurrency(cardTotal)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {cardExpenses.length} lançamento{cardExpenses.length !== 1 ? "s" : ""} neste mês
-              </p>
-              {state.creditCards.map((card) => {
-                const spent = cardExpenses
-                  .filter((t) => t.creditCardId === card.id)
-                  .reduce((s, t) => s + t.amount, 0);
-                if (spent === 0) return null;
-                const pct = card.limit > 0 ? (spent / card.limit) * 100 : 0;
-                return (
-                  <div key={card.id} className="mt-4">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">{card.name} •••• {card.lastDigits}</span>
-                      <span className="tabular-nums">{formatCurrency(spent)}</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
-                    </div>
+        <div>
+          <h2 className="text-base md:text-lg font-medium mb-4">Top Categorias</h2>
+          <div className="glass-card p-4 md:p-6">
+            {topCategories.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sem despesas neste mês.</p>
+            ) : (
+              <div className="space-y-3">
+                {topCategories.map(([name, amount]) => (
+                  <div key={name} className="flex justify-between items-center">
+                    <span className="text-sm">{name}</span>
+                    <span className="text-sm tabular-nums font-medium">{formatCurrency(amount)}</span>
                   </div>
-                );
-              })}
-              {state.creditCards.length === 0 && (
-                <p className="text-xs text-muted-foreground mt-3">Nenhum cartão cadastrado.</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-base md:text-lg font-medium mb-4">Top Categorias</h2>
-            <div className="glass-card p-4 md:p-6">
-              {topCategories.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem despesas neste mês.</p>
-              ) : (
-                <div className="space-y-3">
-                  {topCategories.map(([name, amount]) => (
-                    <div key={name} className="flex justify-between items-center">
-                      <span className="text-sm">{name}</span>
-                      <span className="text-sm tabular-nums font-medium">{formatCurrency(amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
 
       <DashboardReports />
     </div>
