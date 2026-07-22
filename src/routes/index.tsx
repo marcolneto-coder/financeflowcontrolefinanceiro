@@ -163,6 +163,8 @@ function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <DashboardReports />
     </div>
   );
 }
