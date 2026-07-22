@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
-import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, CalendarDays } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, CalendarDays, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { DashboardReports } from "@/components/DashboardReports";
+import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 
 const WEEKS_STORAGE_KEY = "dashboard.weeklyBalance.weeks";
 
