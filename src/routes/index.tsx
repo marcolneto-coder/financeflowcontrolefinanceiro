@@ -39,9 +39,6 @@ function DashboardPage() {
     prev !== 0 ? ((curr - prev) / Math.abs(prev)) * 100 : 0;
   const balanceDiff = pctDiff(summary.balance, prevSummary.balance);
 
-  const recentTx = [...summary.transactions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 8);
 
   const cardExpenses = summary.transactions.filter(
     (t) => t.type === "expense" && t.creditCardId
