@@ -198,7 +198,7 @@ export function CardProjectionReport() {
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-2 font-semibold sticky top-0 left-0 z-40 min-w-[120px] w-[120px] bg-primary text-primary-foreground">Cartão</th>
-                <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 min-w-[200px] w-[200px] bg-primary/70 text-primary-foreground">Descrição</th>
+                <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 min-w-[200px] w-[200px] bg-primary text-primary-foreground">Descrição</th>
                 {visibleIdx.map((i) => {
                   const mo = cardProjection.months[i];
                   return (
@@ -264,7 +264,7 @@ export function CardProjectionReport() {
                             <span className="truncate">{card.name}</span>
                           </div>
                         </td>
-                        <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-card text-foreground lg:bg-primary/70 lg:text-primary-foreground italic">Sem lançamentos</td>
+                        <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-card text-foreground lg:bg-primary lg:text-primary-foreground italic">Sem lançamentos</td>
                         {visibleIdx.map((i) => (<td key={i} className="p-2 bg-primary/5" />))}
                       </tr>
                     ) : (
@@ -278,7 +278,7 @@ export function CardProjectionReport() {
                               </div>
                             )}
                           </td>
-                          <td className="p-2 align-middle lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-card text-foreground lg:bg-primary/70 lg:text-primary-foreground">
+                          <td className="p-2 align-middle lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-card text-foreground lg:bg-primary lg:text-primary-foreground">
                             <span className="truncate">
                               {row.description}
                               {row.store ? ` / ${row.store}` : ""}
@@ -312,7 +312,7 @@ export function CardProjectionReport() {
                     )}
                     <tr key={`${card.id}-subtotal`} className="border-b-2 border-border font-semibold">
                       <td className="p-2 sticky left-0 z-30 w-[120px] text-right uppercase text-[10px] tracking-wider bg-primary text-primary-foreground">Subtotal</td>
-                      <td className="p-2 text-right lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-primary/70 text-primary-foreground">{card.name}</td>
+                      <td className="p-2 text-right lg:sticky lg:left-[120px] lg:z-20 w-[200px] bg-primary text-primary-foreground">{card.name}</td>
                       {visibleIdx.map((i) => {
                         const m = monthly[i];
                         return (
@@ -332,7 +332,7 @@ export function CardProjectionReport() {
               })}
               <tr className="font-bold border-t-2 border-primary">
                 <td className="p-2 sticky left-0 z-30 w-[120px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">Total</td>
-                <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] uppercase text-[11px] tracking-wider bg-primary/70 text-primary-foreground">Todos os cartões</td>
+                <td className="p-2 lg:sticky lg:left-[120px] lg:z-20 w-[200px] uppercase text-[11px] tracking-wider bg-primary text-primary-foreground">Todos os cartões</td>
                 {visibleIdx.map((i) => {
                   const total = cardProjection.cardBlocks.reduce((s, b) => s + b.monthly[i].total, 0);
                   return (
