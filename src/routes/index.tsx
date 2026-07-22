@@ -3,6 +3,7 @@ import { useFinance } from "@/lib/finance-context";
 import { getMonthSummary, formatCurrency, getCurrentMonth, type Transaction } from "@/lib/finance-store";
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, CalendarDays } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DashboardReports } from "@/components/DashboardReports";
 
 const WEEKS_STORAGE_KEY = "dashboard.weeklyBalance.weeks";
 
@@ -162,6 +163,8 @@ function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <DashboardReports />
     </div>
   );
 }
