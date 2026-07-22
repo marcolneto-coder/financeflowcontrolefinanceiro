@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   ArrowLeftRight,
   CreditCard,
-  BarChart3,
+  
   Settings,
   Menu,
   X,
