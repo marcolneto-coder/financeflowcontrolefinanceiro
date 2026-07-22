@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { getMonthSummary, formatCurrency, getCurrentMonth, type Transaction } from "@/lib/finance-store";
+import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, CalendarDays } from "lucide-react";
 import { useState, useEffect } from "react";
 import { DashboardReports } from "@/components/DashboardReports";
@@ -39,9 +39,6 @@ function DashboardPage() {
     prev !== 0 ? ((curr - prev) / Math.abs(prev)) * 100 : 0;
   const balanceDiff = pctDiff(summary.balance, prevSummary.balance);
 
-  const recentTx = [...summary.transactions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 8);
 
   const cardExpenses = summary.transactions.filter(
     (t) => t.type === "expense" && t.creditCardId
@@ -96,73 +93,57 @@ function DashboardPage() {
         <WeeklyBalanceCard balance={summary.balance} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-8">
-        <div className="lg:col-span-3">
-          <h2 className="text-base md:text-lg font-medium mb-4">Transações Recentes</h2>
-          {recentTx.length === 0 ? (
-            <div className="glass-card p-8 text-center text-muted-foreground text-sm">
-              Nenhuma transação neste mês. Adicione uma na aba Transações.
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {recentTx.map((tx) => (
-                <TransactionRow key={tx.id} tx={tx} categories={state.categories} cards={state.creditCards} />
-              ))}
-            </div>
-          )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <div>
+          <h2 className="text-base md:text-lg font-medium mb-4">Gastos no Cartão</h2>
+          <div className="glass-card p-4 md:p-6">
+            <p className="text-xl md:text-2xl font-semibold tabular-nums">{formatCurrency(cardTotal)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {cardExpenses.length} lançamento{cardExpenses.length !== 1 ? "s" : ""} neste mês
+            </p>
+            {state.creditCards.map((card) => {
+              const spent = cardExpenses
+                .filter((t) => t.creditCardId === card.id)
+                .reduce((s, t) => s + t.amount, 0);
+              if (spent === 0) return null;
+              const pct = card.limit > 0 ? (spent / card.limit) * 100 : 0;
+              return (
+                <div key={card.id} className="mt-4">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">{card.name} •••• {card.lastDigits}</span>
+                    <span className="tabular-nums">{formatCurrency(spent)}</span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+            {state.creditCards.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-3">Nenhum cartão cadastrado.</p>
+            )}
+          </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
-          <div>
-            <h2 className="text-base md:text-lg font-medium mb-4">Gastos no Cartão</h2>
-            <div className="glass-card p-4 md:p-6">
-              <p className="text-xl md:text-2xl font-semibold tabular-nums">{formatCurrency(cardTotal)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {cardExpenses.length} lançamento{cardExpenses.length !== 1 ? "s" : ""} neste mês
-              </p>
-              {state.creditCards.map((card) => {
-                const spent = cardExpenses
-                  .filter((t) => t.creditCardId === card.id)
-                  .reduce((s, t) => s + t.amount, 0);
-                if (spent === 0) return null;
-                const pct = card.limit > 0 ? (spent / card.limit) * 100 : 0;
-                return (
-                  <div key={card.id} className="mt-4">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">{card.name} •••• {card.lastDigits}</span>
-                      <span className="tabular-nums">{formatCurrency(spent)}</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
-                    </div>
+        <div>
+          <h2 className="text-base md:text-lg font-medium mb-4">Top Categorias</h2>
+          <div className="glass-card p-4 md:p-6">
+            {topCategories.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sem despesas neste mês.</p>
+            ) : (
+              <div className="space-y-3">
+                {topCategories.map(([name, amount]) => (
+                  <div key={name} className="flex justify-between items-center">
+                    <span className="text-sm">{name}</span>
+                    <span className="text-sm tabular-nums font-medium">{formatCurrency(amount)}</span>
                   </div>
-                );
-              })}
-              {state.creditCards.length === 0 && (
-                <p className="text-xs text-muted-foreground mt-3">Nenhum cartão cadastrado.</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-base md:text-lg font-medium mb-4">Top Categorias</h2>
-            <div className="glass-card p-4 md:p-6">
-              {topCategories.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem despesas neste mês.</p>
-              ) : (
-                <div className="space-y-3">
-                  {topCategories.map(([name, amount]) => (
-                    <div key={name} className="flex justify-between items-center">
-                      <span className="text-sm">{name}</span>
-                      <span className="text-sm tabular-nums font-medium">{formatCurrency(amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
 
       <DashboardReports />
     </div>
@@ -192,35 +173,6 @@ function SummaryCard({ label, value, icon, colorClass, diff, invertColor }: {
   );
 }
 
-function TransactionRow({ tx, categories, cards }: {
-  tx: Transaction; categories: { id: string; name: string }[]; cards: { id: string; name: string; lastDigits: string }[];
-}) {
-  const cat = categories.find((c) => c.id === tx.categoryId);
-  const card = tx.creditCardId ? cards.find((c) => c.id === tx.creditCardId) : null;
-  const isIncome = tx.type === "income";
-
-  return (
-    <div className="flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-accent/30 transition-colors">
-      <div className={`size-8 md:size-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium ${
-        isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
-      }`}>
-        {tx.description.charAt(0).toUpperCase()}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs md:text-sm font-medium truncate">{tx.description}</p>
-        <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-          {cat?.name || "Sem categoria"}
-          {card ? ` • ${card.name}` : ""}
-          {tx.isInstallment ? ` • ${tx.currentInstallment}/${tx.totalInstallments}` : ""}
-          {tx.isFixed ? " • Fixa" : ""}
-        </p>
-      </div>
-      <p className={`text-xs md:text-sm font-semibold tabular-nums whitespace-nowrap ${isIncome ? "text-income" : "text-expense"}`}>
-        {isIncome ? "+" : "-"} {formatCurrency(tx.amount)}
-      </p>
-    </div>
-  );
-}
 
 function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
   total: number; cardExpenses: number; nonCardExpenses: number; diff: number;
