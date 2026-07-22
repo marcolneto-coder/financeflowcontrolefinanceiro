@@ -193,7 +193,7 @@ export function CardProjectionReport() {
           Nenhum cartão cadastrado.
         </div>
       ) : (
-        <div className="glass-card p-2 md:p-4 overflow-auto max-h-[calc(100vh-16rem)]">
+        <div className="glass-card overflow-auto max-h-[calc(100vh-16rem)] rounded-lg">
           <table className="w-full text-xs border-collapse min-w-[900px]">
             <thead>
               <tr className="border-b border-border">
