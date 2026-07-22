@@ -33,36 +33,7 @@ function ReportsPage() {
 
 
 
-  const monthlyData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const s = getMonthSummary(state.transactions, year, i);
-      return { month: MONTHS_SHORT[i], receitas: s.income, despesas: s.expenses, saldo: s.balance };
-    });
-  }, [state.transactions, year]);
 
-  const yearTotals = useMemo(() => {
-    return monthlyData.reduce(
-      (acc, m) => ({ income: acc.income + m.receitas, expenses: acc.expenses + m.despesas }),
-      { income: 0, expenses: 0 }
-    );
-  }, [monthlyData]);
-
-  const categoryData = useMemo(() => {
-    const map: Record<string, number> = {};
-    state.transactions
-      .filter((t) => {
-        const d = new Date(t.date + "T12:00:00");
-        if (d.getFullYear() !== year || t.type !== "expense") return false;
-        if (catView === "monthly" && d.getMonth() !== catMonth) return false;
-        return true;
-      })
-      .forEach((t) => {
-        const cat = state.categories.find((c) => c.id === t.categoryId);
-        const name = cat?.name || "Outros";
-        map[name] = (map[name] || 0) + t.amount;
-      });
-    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [state.transactions, state.categories, year, catView, catMonth]);
 
   // Projection: from January of current year through 12 months ahead of current month.
   // When past months are hidden, extend the tail so 12 future months always remain visible.
