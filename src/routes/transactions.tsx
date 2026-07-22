@@ -281,6 +281,40 @@ function TransactionsPage() {
         </div>
       </div>
 
+      {/* Totals summary based on active filters */}
+      {(() => {
+        const totalIncome = visibleTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+        const totalExpense = visibleTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+        const net = totalIncome - totalExpense;
+        return (
+          <div className="glass-card p-3 md:p-4 mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Total ({visibleTx.length})</span>
+              <span className="font-semibold tabular-nums">{formatCurrency(totalIncome + totalExpense)}</span>
+            </div>
+            {(filter === "all" || filter === "income") && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Receitas</span>
+                <span className="font-semibold tabular-nums text-income">{formatCurrency(totalIncome)}</span>
+              </div>
+            )}
+            {(filter === "all" || filter === "expense") && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Despesas</span>
+                <span className="font-semibold tabular-nums text-expense">{formatCurrency(totalExpense)}</span>
+              </div>
+            )}
+            {filter === "all" && (
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-xs text-muted-foreground">Saldo</span>
+                <span className={`font-semibold tabular-nums ${net >= 0 ? "text-income" : "text-expense"}`}>{formatCurrency(net)}</span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+
       {visibleTx.length === 0 ? (
         <div className="glass-card p-8 md:p-12 text-center text-muted-foreground">
           <p className="text-sm">{hasActiveSearch ? "Nenhum resultado para a busca." : "Nenhuma transação neste mês."}</p>
