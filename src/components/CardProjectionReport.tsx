@@ -323,7 +323,7 @@ export function CardProjectionReport() {
                       })}
                     </tr>
                     <tr key={`${card.id}-spacer`} aria-hidden className="h-4">
-                      <td className="lg:sticky lg:left-0 lg:z-30 bg-background" />
+                      <td className="sticky left-0 z-30 bg-background" />
                       <td className="lg:sticky lg:left-[120px] lg:z-20 bg-background" />
                       {visibleIdx.map((i) => (<td key={i} className="bg-background" />))}
                     </tr>
