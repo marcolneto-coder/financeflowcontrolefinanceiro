@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { getMonthSummary, formatCurrency, getCurrentMonth, type Transaction } from "@/lib/finance-store";
+import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, CalendarDays } from "lucide-react";
 import { useState, useEffect } from "react";
 import { DashboardReports } from "@/components/DashboardReports";
