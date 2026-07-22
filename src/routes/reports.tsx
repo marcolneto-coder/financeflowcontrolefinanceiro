@@ -1,16 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
+import { formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo, Fragment } from "react";
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
-} from "recharts";
 import { CardBrandIcon } from "@/components/CardBrandIcon";
 import { Button } from "@/components/ui/button";
 import { FileDown, FileSpreadsheet, EyeOff, Eye } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
 
 
 export const Route = createFileRoute("/reports")({
