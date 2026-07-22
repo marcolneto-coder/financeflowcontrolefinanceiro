@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   ArrowLeftRight,
   CreditCard,
-  BarChart3,
+  
   Settings,
   Menu,
   X,
@@ -19,7 +19,7 @@ const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Transações", url: "/transactions", icon: ArrowLeftRight },
   { title: "Cartões", url: "/cards", icon: CreditCard },
-  { title: "Relatórios", url: "/reports", icon: BarChart3 },
+  
   { title: "Simulador", url: "/simulator", icon: Calculator },
   { title: "Importar", url: "/import", icon: FileUp },
   { title: "Configurações", url: "/settings", icon: Settings },

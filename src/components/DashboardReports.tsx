@@ -64,11 +64,12 @@ export function DashboardReports() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            to="/reports"
+            to="/cards"
             className="text-xs inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
           >
-            Ver relatórios completos <ExternalLink className="size-3" />
+            Ver projeção de cartões <ExternalLink className="size-3" />
           </Link>
+
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm">
