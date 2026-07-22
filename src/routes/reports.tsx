@@ -1,16 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
-import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
+import { formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo, Fragment } from "react";
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
-} from "recharts";
 import { CardBrandIcon } from "@/components/CardBrandIcon";
 import { Button } from "@/components/ui/button";
 import { FileDown, FileSpreadsheet, EyeOff, Eye } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
 
 
 export const Route = createFileRoute("/reports")({
@@ -30,45 +28,12 @@ const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4
 function ReportsPage() {
   const { state } = useFinance();
   const navigate = useNavigate();
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [tab, setTab] = useState<"overview" | "cards">("overview");
   const [hidePast, setHidePast] = useState(true);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
-  const [catView, setCatView] = useState<"yearly" | "monthly">("yearly");
-  const [catMonth, setCatMonth] = useState<number>(now.getMonth());
 
 
-  const monthlyData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const s = getMonthSummary(state.transactions, year, i);
-      return { month: MONTHS_SHORT[i], receitas: s.income, despesas: s.expenses, saldo: s.balance };
-    });
-  }, [state.transactions, year]);
 
-  const yearTotals = useMemo(() => {
-    return monthlyData.reduce(
-      (acc, m) => ({ income: acc.income + m.receitas, expenses: acc.expenses + m.despesas }),
-      { income: 0, expenses: 0 }
-    );
-  }, [monthlyData]);
 
-  const categoryData = useMemo(() => {
-    const map: Record<string, number> = {};
-    state.transactions
-      .filter((t) => {
-        const d = new Date(t.date + "T12:00:00");
-        if (d.getFullYear() !== year || t.type !== "expense") return false;
-        if (catView === "monthly" && d.getMonth() !== catMonth) return false;
-        return true;
-      })
-      .forEach((t) => {
-        const cat = state.categories.find((c) => c.id === t.categoryId);
-        const name = cat?.name || "Outros";
-        map[name] = (map[name] || 0) + t.amount;
-      });
-    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [state.transactions, state.categories, year, catView, catMonth]);
 
   // Projection: from January of current year through 12 months ahead of current month.
   // When past months are hidden, extend the tail so 12 future months always remain visible.
@@ -215,135 +180,13 @@ function ReportsPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">Análise</p>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Relatórios</h1>
-        </div>
-        {tab === "overview" && (
-          <div className="flex items-center gap-2">
-            <button onClick={() => setYear((y) => y - 1)} className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent transition-colors">←</button>
-            <span className="text-sm font-medium min-w-[60px] text-center">{year}</span>
-            <button onClick={() => setYear((y) => y + 1)} className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent transition-colors">→</button>
-          </div>
-        )}
+      <header className="mb-8">
+        <p className="text-sm text-muted-foreground mb-1">Análise</p>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Relatórios</h1>
       </header>
 
-      <div className="flex gap-1 p-1 bg-muted rounded-lg mb-8 w-fit flex-wrap">
-        {(["overview", "cards"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors ${
-              tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}>
-            {t === "overview" ? "Visão Geral" : "Projeção Cartões"}
-          </button>
-        ))}
-      </div>
+      <div className="space-y-4">
 
-      {tab === "overview" && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
-            <div className="glass-card p-4 md:p-6">
-              <p className="text-xs md:text-sm text-muted-foreground mb-2">Total Receitas</p>
-              <p className="text-xl md:text-2xl font-semibold tabular-nums text-income">{formatCurrency(yearTotals.income)}</p>
-            </div>
-            <div className="glass-card p-4 md:p-6">
-              <p className="text-xs md:text-sm text-muted-foreground mb-2">Total Despesas</p>
-              <p className="text-xl md:text-2xl font-semibold tabular-nums text-expense">{formatCurrency(yearTotals.expenses)}</p>
-            </div>
-            <div className="glass-card p-4 md:p-6">
-              <p className="text-xs md:text-sm text-muted-foreground mb-2">Saldo Anual</p>
-              <p className="text-xl md:text-2xl font-semibold tabular-nums text-primary">{formatCurrency(yearTotals.income - yearTotals.expenses)}</p>
-            </div>
-          </div>
-
-          <div className="glass-card p-4 md:p-6 mb-8">
-            <h2 className="text-base md:text-lg font-medium mb-6">Receitas vs Despesas por Mês</h2>
-            {state.transactions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">Adicione transações para ver o gráfico.</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyData} barCategoryGap="20%">
-                  <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false}
-                    tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px" }}
-                    formatter={(value) => formatCurrency(Number(value))} />
-                  <Bar dataKey="receitas" fill="var(--income)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="despesas" fill="var(--expense)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          <div className="glass-card p-4 md:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-              <h2 className="text-base md:text-lg font-medium">Despesas por Categoria</h2>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex gap-1 p-1 bg-muted rounded-lg">
-                  {(["yearly", "monthly"] as const).map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setCatView(v)}
-                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                        catView === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                      }`}
-                    >
-                      {v === "yearly" ? "Anual" : "Mensal"}
-                    </button>
-                  ))}
-                </div>
-                {catView === "monthly" && (
-                  <select
-                    value={catMonth}
-                    onChange={(e) => setCatMonth(Number(e.target.value))}
-                    className="px-2 py-1 text-xs rounded-md border border-border bg-background"
-                  >
-                    {MONTHS_FULL.map((m, i) => (
-                      <option key={i} value={i}>{m}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </div>
-            {categoryData.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">
-                Sem despesas {catView === "monthly" ? `em ${MONTHS_FULL[catMonth]}/${year}` : "neste ano"}.
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={60}>
-                      {categoryData.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px" }}
-                      formatter={(value) => formatCurrency(Number(value))} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-3">
-                  {(() => {
-                    const total = categoryData.reduce((sum, c) => sum + c.value, 0);
-                    return categoryData.map((cat, i) => (
-                      <div key={cat.name} className="flex items-center gap-3">
-                        <div className="size-3 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                        <span className="text-sm flex-1">{cat.name}</span>
-                        <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">{total > 0 ? `${((cat.value / total) * 100).toFixed(1)}%` : "0.0%"}</span>
-                        <span className="text-sm tabular-nums font-medium w-24 text-right">{formatCurrency(cat.value)}</span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {tab === "cards" && (
-        <div className="space-y-4">
           <div className="glass-card p-4 md:p-6">
             <div className="flex flex-col sm:flex-row justify-between gap-3">
               <div>
@@ -569,7 +412,7 @@ function ReportsPage() {
             </div>
           )}
         </div>
-      )}
+
 
     </div>
   );
