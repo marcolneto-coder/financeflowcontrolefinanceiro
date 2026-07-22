@@ -27,21 +27,41 @@ function CardsPage() {
   const { state, addCreditCard, updateCreditCard, deleteCreditCard } = useFinance();
   const [showForm, setShowForm] = useState(false);
   const [editCard, setEditCard] = useState<typeof state.creditCards[0] | null>(null);
+  const [tab, setTab] = useState<"cards" | "projection">("cards");
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+    <div className="p-4 md:p-8 max-w-6xl">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
         <div>
           <p className="text-sm text-muted-foreground mb-1">Gerenciar</p>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Cartões de Crédito</h1>
         </div>
-        <Button onClick={() => { setEditCard(null); setShowForm(true); }}>
-          <Plus className="size-4" />
-          Novo cartão
-        </Button>
+        {tab === "cards" && (
+          <Button onClick={() => { setEditCard(null); setShowForm(true); }}>
+            <Plus className="size-4" />
+            Novo cartão
+          </Button>
+        )}
       </header>
 
-      {state.creditCards.length === 0 ? (
+      <div className="flex gap-1 p-1 bg-muted rounded-lg mb-6 w-fit flex-wrap">
+        {(["cards", "projection"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors ${
+              tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            {t === "cards" ? "Meus Cartões" : "Projeção 12 meses"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "projection" ? (
+        <CardProjectionReport />
+      ) : state.creditCards.length === 0 ? (
+
         <div className="glass-card p-8 md:p-12 text-center text-muted-foreground">
           <CreditCard className="size-12 mx-auto mb-4 opacity-30" />
           <p className="text-sm">Nenhum cartão cadastrado.</p>
