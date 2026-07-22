@@ -28,13 +28,9 @@ const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4
 function ReportsPage() {
   const { state } = useFinance();
   const navigate = useNavigate();
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [tab, setTab] = useState<"overview" | "cards">("overview");
   const [hidePast, setHidePast] = useState(true);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
-  const [catView, setCatView] = useState<"yearly" | "monthly">("yearly");
-  const [catMonth, setCatMonth] = useState<number>(now.getMonth());
+
 
 
   const monthlyData = useMemo(() => {
