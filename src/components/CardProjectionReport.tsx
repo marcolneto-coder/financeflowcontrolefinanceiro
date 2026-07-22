@@ -198,7 +198,7 @@ export function CardProjectionReport() {
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-2 font-semibold sticky top-0 left-0 z-40 min-w-[120px] w-[120px] bg-primary text-primary-foreground">Cartão</th>
-                <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 min-w-[200px] w-[200px] bg-primary text-primary-foreground lg:[position:sticky] [position:static]">Descrição</th>
+                <th className="text-left p-2 font-semibold sticky top-0 lg:left-[120px] z-30 min-w-[200px] w-[200px] bg-primary text-primary-foreground">Descrição</th>
                 {visibleIdx.map((i) => {
                   const mo = cardProjection.months[i];
                   return (
