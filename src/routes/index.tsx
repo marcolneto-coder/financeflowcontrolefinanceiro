@@ -176,35 +176,6 @@ function SummaryCard({ label, value, icon, colorClass, diff, invertColor }: {
   );
 }
 
-function TransactionRow({ tx, categories, cards }: {
-  tx: Transaction; categories: { id: string; name: string }[]; cards: { id: string; name: string; lastDigits: string }[];
-}) {
-  const cat = categories.find((c) => c.id === tx.categoryId);
-  const card = tx.creditCardId ? cards.find((c) => c.id === tx.creditCardId) : null;
-  const isIncome = tx.type === "income";
-
-  return (
-    <div className="flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-xl hover:bg-accent/30 transition-colors">
-      <div className={`size-8 md:size-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium ${
-        isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
-      }`}>
-        {tx.description.charAt(0).toUpperCase()}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs md:text-sm font-medium truncate">{tx.description}</p>
-        <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-          {cat?.name || "Sem categoria"}
-          {card ? ` • ${card.name}` : ""}
-          {tx.isInstallment ? ` • ${tx.currentInstallment}/${tx.totalInstallments}` : ""}
-          {tx.isFixed ? " • Fixa" : ""}
-        </p>
-      </div>
-      <p className={`text-xs md:text-sm font-semibold tabular-nums whitespace-nowrap ${isIncome ? "text-income" : "text-expense"}`}>
-        {isIncome ? "+" : "-"} {formatCurrency(tx.amount)}
-      </p>
-    </div>
-  );
-}
 
 function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
   total: number; cardExpenses: number; nonCardExpenses: number; diff: number;
