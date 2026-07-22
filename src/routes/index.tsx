@@ -28,6 +28,7 @@ function DashboardPage() {
   const current = getCurrentMonth();
   const [year, setYear] = useState(current.year);
   const [month, setMonth] = useState(current.month);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   const summary = getMonthSummary(state.transactions, year, month);
   const prevSummary = getMonthSummary(
