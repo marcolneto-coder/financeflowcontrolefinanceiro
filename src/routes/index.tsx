@@ -236,7 +236,7 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
   return (
     <div className="glass-card p-4 md:p-6">
       <div className="flex justify-between items-start mb-3 md:mb-4">
-        <p className="text-xs md:text-sm text-muted-foreground">Despesas</p>
+        <p className="text-xs md:text-sm text-muted-foreground">Fixas + Cartão</p>
         <div className="text-expense"><TrendingDown className="size-5" /></div>
       </div>
       <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
@@ -249,10 +249,58 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="flex items-center gap-1.5 text-muted-foreground">
-            <Wallet className="size-3" /> Outras
+            <CalendarDays className="size-3" /> Fixas
           </span>
           <span className="tabular-nums font-medium">{formatCurrency(nonCardExpenses)}</span>
         </div>
+      </div>
+      {diff !== 0 && (
+        <p className={`text-xs mt-3 flex items-center gap-1 ${isBad ? "text-expense" : "text-income"}`}>
+          {diff > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
+          {Math.abs(diff).toFixed(1)}% vs mês anterior
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DailyExpensesCard({ transactions, total, diff }: {
+  transactions: Array<{ paymentMethod?: "debit" | "pix" | "cash"; amount: number }>;
+  total: number;
+  diff: number;
+}) {
+  const isBad = diff > 0;
+  const byMethod = { debit: 0, pix: 0, cash: 0, none: 0 };
+  for (const t of transactions) {
+    const k = t.paymentMethod ?? "none";
+    byMethod[k] += t.amount;
+  }
+  return (
+    <div className="glass-card p-4 md:p-6">
+      <div className="flex justify-between items-start mb-3 md:mb-4">
+        <p className="text-xs md:text-sm text-muted-foreground">Dia a dia</p>
+        <div className="text-expense"><Wallet className="size-5" /></div>
+      </div>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
+      <div className="mt-3 space-y-1.5 text-xs">
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-muted-foreground">Débito</span>
+          <span className="tabular-nums font-medium">{formatCurrency(byMethod.debit)}</span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-muted-foreground">Pix</span>
+          <span className="tabular-nums font-medium">{formatCurrency(byMethod.pix)}</span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-muted-foreground">Dinheiro</span>
+          <span className="tabular-nums font-medium">{formatCurrency(byMethod.cash)}</span>
+        </div>
+        {byMethod.none > 0 && (
+          <div className="flex justify-between items-center gap-2">
+            <span className="text-muted-foreground">Sem forma</span>
+            <span className="tabular-nums font-medium">{formatCurrency(byMethod.none)}</span>
+          </div>
+        )}
       </div>
       {diff !== 0 && (
         <p className={`text-xs mt-3 flex items-center gap-1 ${isBad ? "text-expense" : "text-income"}`}>
