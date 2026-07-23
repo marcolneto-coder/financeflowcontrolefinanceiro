@@ -32,6 +32,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
   const [creditCardId, setCreditCardId] = useState(seed?.creditCardId || "");
   const [store, setStore] = useState(seed?.store || "");
   const [purchaseDate, setPurchaseDate] = useState(seed?.purchaseDate || new Date().toISOString().split("T")[0]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">(seed?.paymentMethod || "");
 
   // Billing month: default to next month
   const nextMonth = getNextMonth();
