@@ -159,7 +159,10 @@ function InvestmentsPage() {
             Acompanhe sua carteira. Cadastre manualmente ou importe extratos (em breve).
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setImporting(true)}>
+            <Upload className="size-4" /> Importar extrato
+          </Button>
           <Button variant="outline" onClick={handleRefreshQuotes} disabled={refreshing}>
             <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
             {refreshing ? "Atualizando…" : "Atualizar cotações"}
