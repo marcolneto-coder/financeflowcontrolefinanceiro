@@ -22,7 +22,7 @@ const items = [
   { title: "Transações", url: "/transactions", icon: ArrowLeftRight },
   { title: "Cartões", url: "/cards", icon: CreditCard },
   { title: "Investimentos", url: "/investments", icon: PiggyBank },
-  { title: "Simulador", url: "/simulator", icon: Calculator },
+  { title: "Simulador de Compras", url: "/simulator", icon: Calculator },
   { title: "Importar", url: "/import", icon: FileUp },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
