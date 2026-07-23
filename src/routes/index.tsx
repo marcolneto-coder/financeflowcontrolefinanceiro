@@ -83,8 +83,15 @@ function DashboardPage() {
           <span className="text-sm font-medium min-w-[140px] text-center">{MONTHS[month]} {year}</span>
           <button onClick={() => goMonth(1)} className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent transition-colors">→</button>
           <button
+            onClick={() => setShowParseNotif(true)}
+            className="ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+            title="Extrair transação de notificação com IA"
+          >
+            <Sparkles className="size-4" /> Notificação
+          </button>
+          <button
             onClick={() => setShowQuickAdd(true)}
-            className="ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
           >
             <Plus className="size-4" /> Nova transação
           </button>
@@ -94,6 +101,11 @@ function DashboardPage() {
       {showQuickAdd && (
         <TransactionFormDialog editTransaction={null} onClose={() => setShowQuickAdd(false)} />
       )}
+
+      {showParseNotif && (
+        <ParseNotificationDialog onClose={() => setShowParseNotif(false)} />
+      )}
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
         <SummaryCard label="Receitas" value={summary.income} icon={<TrendingUp className="size-5" />} colorClass="text-income" diff={pctDiff(summary.income, prevSummary.income)} />
