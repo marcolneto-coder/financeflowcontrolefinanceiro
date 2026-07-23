@@ -12,7 +12,10 @@ import {
   computeCurrentValue,
 } from "@/lib/investments-store";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, PiggyBank } from "lucide-react";
+import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, PiggyBank, RefreshCw } from "lucide-react";
+import { fetchQuotes } from "@/lib/quotes.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/investments")({
   component: InvestmentsPage,
@@ -57,6 +60,48 @@ function InvestmentsPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Investment | null>(null);
   const [creating, setCreating] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshQuotesFn = useServerFn(fetchQuotes);
+
+  const handleRefreshQuotes = async () => {
+    const marketItems = items.filter(
+      (i) => (i.type === "fii" || i.type === "etf" || i.type === "acao") && i.ticker && i.quantity > 0,
+    );
+    if (!marketItems.length) {
+      toast.info("Nenhum ativo de mercado com ticker cadastrado.");
+      return;
+    }
+    setRefreshing(true);
+    try {
+      const tickers = Array.from(new Set(marketItems.map((i) => i.ticker!.toUpperCase())));
+      const quotes = await refreshQuotesFn({ data: { tickers } });
+      const byTicker = new Map(quotes.map((q) => [q.ticker, q]));
+      let updated = 0;
+      let failed = 0;
+      const now = new Date().toISOString();
+      for (const inv of marketItems) {
+        const q = byTicker.get(inv.ticker!.toUpperCase());
+        if (q && q.price != null && q.price > 0) {
+          const newValue = q.price * inv.quantity;
+          const { error } = await supabase
+            .from("investments")
+            .update({ current_price: q.price, current_value: newValue, last_update: now })
+            .eq("id", inv.id);
+          if (error) failed++;
+          else updated++;
+        } else {
+          failed++;
+        }
+      }
+      if (updated) toast.success(`${updated} ativo(s) atualizado(s)${failed ? ` · ${failed} sem cotação` : ""}.`);
+      else toast.error("Não foi possível obter cotações. Verifique tickers ou configure BRAPI_TOKEN.");
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Falha ao atualizar cotações.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const load = async () => {
     if (!user) return;
@@ -112,9 +157,15 @@ function InvestmentsPage() {
             Acompanhe sua carteira. Cadastre manualmente ou importe extratos (em breve).
           </p>
         </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus className="size-4" /> Novo ativo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleRefreshQuotes} disabled={refreshing}>
+            <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Atualizando…" : "Atualizar cotações"}
+          </Button>
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="size-4" /> Novo ativo
+          </Button>
+        </div>
       </header>
 
       {/* Summary cards */}
