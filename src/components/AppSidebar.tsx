@@ -88,6 +88,14 @@ export function AppSidebar() {
             );
           })}
         </nav>
+
+        <button
+          onClick={() => { openCommandPalette(); if (isMobile) setOpen(false); }}
+          className="mt-4 w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground border border-sidebar-border hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors"
+        >
+          <span className="flex-1 text-left">Buscar ou executar…</span>
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-muted/50 border border-border">⌘K</kbd>
+        </button>
       </div>
 
       <div className="mt-auto p-5 space-y-3">
