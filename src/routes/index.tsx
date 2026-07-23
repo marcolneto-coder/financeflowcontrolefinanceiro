@@ -240,13 +240,14 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
   total: number; cardExpenses: number; nonCardExpenses: number; diff: number;
 }) {
   const isBad = diff > 0;
+  const animatedTotal = useAnimatedNumber(total);
   return (
-    <div className="glass-card p-4 md:p-6">
+    <div className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5">
       <div className="flex justify-between items-start mb-3 md:mb-4">
         <p className="text-xs md:text-sm text-muted-foreground">Fixas + Cartão</p>
         <div className="text-expense"><TrendingDown className="size-5" /></div>
       </div>
-      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(animatedTotal)}</p>
       <div className="mt-3 space-y-1.5 text-xs">
         <div className="flex justify-between items-center gap-2">
           <span className="flex items-center gap-1.5 text-muted-foreground">
