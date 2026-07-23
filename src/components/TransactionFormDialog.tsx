@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useFinance } from "@/lib/finance-context";
-import { type Transaction, type TransactionType, formatCurrency, getNextMonth } from "@/lib/finance-store";
-import { X, Plus } from "lucide-react";
+import { type Transaction, type TransactionType, type PaymentMethod, formatCurrency, getNextMonth } from "@/lib/finance-store";
+import { X, Plus, CreditCard as CreditCardIcon, Smartphone, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const MONTHS = [
@@ -32,6 +32,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
   const [creditCardId, setCreditCardId] = useState(seed?.creditCardId || "");
   const [store, setStore] = useState(seed?.store || "");
   const [purchaseDate, setPurchaseDate] = useState(seed?.purchaseDate || new Date().toISOString().split("T")[0]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">(seed?.paymentMethod || "");
 
   // Billing month: default to next month
   const nextMonth = getNextMonth();
@@ -83,6 +84,8 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
     if (!description.trim() || parsedAmount <= 0) return;
 
     const hasCreditCard = type === "expense" && creditCardId;
+    const isDaily = type === "expense" && !creditCardId && !isFixed;
+    const finalPaymentMethod: PaymentMethod | undefined = isDaily && paymentMethod ? paymentMethod : undefined;
 
     if (isEdit && editTransaction) {
       await updateTransactionAndFuture({
@@ -97,6 +100,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
         store: store || undefined,
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
+        paymentMethod: finalPaymentMethod,
       });
       await setTransactionTags(editTransaction.id, selectedTags);
     } else {
@@ -113,6 +117,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
         store: store || undefined,
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
+        paymentMethod: finalPaymentMethod,
         tagIds: selectedTags,
       });
     }
@@ -120,6 +125,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
   };
 
   const showCardFields = type === "expense" && creditCardId;
+  const showDailyPayment = type === "expense" && !creditCardId && !isFixed;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -267,6 +273,40 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
             <input type="checkbox" checked={isFixed} onChange={(e) => setIsFixed(e.target.checked)} className="size-4 rounded accent-primary" />
             <span className="text-sm">Despesa/Receita fixa (recorrente)</span>
           </label>
+
+          {/* Daily expense payment method */}
+          {showDailyPayment && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                Forma de pagamento <span className="text-muted-foreground/70">(dia a dia — opcional)</span>
+              </label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {([
+                  { key: "", label: "Nenhuma", icon: null },
+                  { key: "debit", label: "Débito", icon: <CreditCardIcon className="size-3.5" /> },
+                  { key: "pix", label: "Pix", icon: <Smartphone className="size-3.5" /> },
+                  { key: "cash", label: "Dinheiro", icon: <Banknote className="size-3.5" /> },
+                ] as const).map((opt) => {
+                  const sel = paymentMethod === opt.key;
+                  return (
+                    <button
+                      key={opt.key || "none"}
+                      type="button"
+                      onClick={() => setPaymentMethod(opt.key as PaymentMethod | "")}
+                      className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                        sel
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-input border-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {opt.icon}
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Installment */}
           {type === "expense" && !isEdit && (

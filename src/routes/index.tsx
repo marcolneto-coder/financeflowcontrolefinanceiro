@@ -57,10 +57,17 @@ function DashboardPage() {
   const balanceDiff = pctDiff(summary.balance, prevSummary.balance);
 
 
-  const cardExpenses = summary.transactions.filter(
-    (t) => t.type === "expense" && t.creditCardId
-  );
+  const expenseTxs = summary.transactions.filter((t) => t.type === "expense");
+  const cardExpenses = expenseTxs.filter((t) => t.creditCardId);
   const cardTotal = cardExpenses.reduce((s, t) => s + t.amount, 0);
+  const fixedNonCardTotal = expenseTxs.filter((t) => t.isFixed && !t.creditCardId).reduce((s, t) => s + t.amount, 0);
+  const fixedAndCardTotal = cardTotal + fixedNonCardTotal;
+  const dailyExpensesTxs = expenseTxs.filter((t) => !t.creditCardId && !t.isFixed);
+  const dailyTotal = dailyExpensesTxs.reduce((s, t) => s + t.amount, 0);
+
+  const prevExpenseTxs = prevSummary.transactions.filter((t) => t.type === "expense");
+  const prevFixedAndCardTotal = prevExpenseTxs.filter((t) => t.creditCardId || t.isFixed).reduce((s, t) => s + t.amount, 0);
+  const prevDailyTotal = prevExpenseTxs.filter((t) => !t.creditCardId && !t.isFixed).reduce((s, t) => s + t.amount, 0);
 
   const categoryBreakdown = summary.transactions
     .filter((t) => t.type === "expense")
@@ -124,13 +131,18 @@ function DashboardPage() {
       )}
 
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6 mb-8">
         <SummaryCard label="Receitas" value={summary.income} icon={<TrendingUp className="size-5" />} colorClass="text-income" diff={pctDiff(summary.income, prevSummary.income)} />
         <ExpensesBreakdownCard
-          total={summary.expenses}
+          total={fixedAndCardTotal}
           cardExpenses={cardTotal}
-          nonCardExpenses={summary.expenses - cardTotal}
-          diff={pctDiff(summary.expenses, prevSummary.expenses)}
+          nonCardExpenses={fixedNonCardTotal}
+          diff={pctDiff(fixedAndCardTotal, prevFixedAndCardTotal)}
+        />
+        <DailyExpensesCard
+          transactions={dailyExpensesTxs}
+          total={dailyTotal}
+          diff={pctDiff(dailyTotal, prevDailyTotal)}
         />
         <SummaryCard label="Saldo" value={summary.balance} icon={<Wallet className="size-5" />} colorClass="text-primary" diff={balanceDiff} />
         <WeeklyBalanceCard balance={summary.balance} />
@@ -224,7 +236,7 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
   return (
     <div className="glass-card p-4 md:p-6">
       <div className="flex justify-between items-start mb-3 md:mb-4">
-        <p className="text-xs md:text-sm text-muted-foreground">Despesas</p>
+        <p className="text-xs md:text-sm text-muted-foreground">Fixas + Cartão</p>
         <div className="text-expense"><TrendingDown className="size-5" /></div>
       </div>
       <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
@@ -237,10 +249,58 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="flex items-center gap-1.5 text-muted-foreground">
-            <Wallet className="size-3" /> Outras
+            <CalendarDays className="size-3" /> Fixas
           </span>
           <span className="tabular-nums font-medium">{formatCurrency(nonCardExpenses)}</span>
         </div>
+      </div>
+      {diff !== 0 && (
+        <p className={`text-xs mt-3 flex items-center gap-1 ${isBad ? "text-expense" : "text-income"}`}>
+          {diff > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
+          {Math.abs(diff).toFixed(1)}% vs mês anterior
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DailyExpensesCard({ transactions, total, diff }: {
+  transactions: Array<{ paymentMethod?: "debit" | "pix" | "cash"; amount: number }>;
+  total: number;
+  diff: number;
+}) {
+  const isBad = diff > 0;
+  const byMethod = { debit: 0, pix: 0, cash: 0, none: 0 };
+  for (const t of transactions) {
+    const k = t.paymentMethod ?? "none";
+    byMethod[k] += t.amount;
+  }
+  return (
+    <div className="glass-card p-4 md:p-6">
+      <div className="flex justify-between items-start mb-3 md:mb-4">
+        <p className="text-xs md:text-sm text-muted-foreground">Dia a dia</p>
+        <div className="text-expense"><Wallet className="size-5" /></div>
+      </div>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
+      <div className="mt-3 space-y-1.5 text-xs">
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-muted-foreground">Débito</span>
+          <span className="tabular-nums font-medium">{formatCurrency(byMethod.debit)}</span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-muted-foreground">Pix</span>
+          <span className="tabular-nums font-medium">{formatCurrency(byMethod.pix)}</span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-muted-foreground">Dinheiro</span>
+          <span className="tabular-nums font-medium">{formatCurrency(byMethod.cash)}</span>
+        </div>
+        {byMethod.none > 0 && (
+          <div className="flex justify-between items-center gap-2">
+            <span className="text-muted-foreground">Sem forma</span>
+            <span className="tabular-nums font-medium">{formatCurrency(byMethod.none)}</span>
+          </div>
+        )}
       </div>
       {diff !== 0 && (
         <p className={`text-xs mt-3 flex items-center gap-1 ${isBad ? "text-expense" : "text-income"}`}>

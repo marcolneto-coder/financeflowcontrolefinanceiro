@@ -68,9 +68,11 @@ type TxRow = {
   is_fixed: boolean; is_installment: boolean;
   total_installments: number | null; current_installment: number | null;
   installment_group_id: string | null; created_at: string;
+  payment_method: string | null;
 };
 
 function mapTx(r: TxRow): Transaction {
+  const pm = r.payment_method;
   return {
     id: r.id,
     type: r.type,
@@ -87,6 +89,7 @@ function mapTx(r: TxRow): Transaction {
     store: r.store ?? undefined,
     purchaseDate: r.purchase_date ?? undefined,
     billingMonth: r.billing_month ?? undefined,
+    paymentMethod: (pm === "debit" || pm === "pix" || pm === "cash") ? pm : undefined,
     createdAt: r.created_at,
   };
 }
@@ -108,6 +111,7 @@ function txToRow(t: Transaction | (Omit<Transaction, "id" | "currentInstallment"
     total_installments: t.totalInstallments ?? null,
     current_installment: t.currentInstallment ?? null,
     installment_group_id: t.installmentGroupId ?? null,
+    payment_method: t.paymentMethod ?? null,
   };
 }
 

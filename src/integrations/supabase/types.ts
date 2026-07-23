@@ -175,6 +175,7 @@ export type Database = {
           installment_group_id: string | null
           is_fixed: boolean
           is_installment: boolean
+          payment_method: string | null
           purchase_date: string | null
           store: string | null
           total_installments: number | null
@@ -194,6 +195,7 @@ export type Database = {
           installment_group_id?: string | null
           is_fixed?: boolean
           is_installment?: boolean
+          payment_method?: string | null
           purchase_date?: string | null
           store?: string | null
           total_installments?: number | null
@@ -213,6 +215,7 @@ export type Database = {
           installment_group_id?: string | null
           is_fixed?: boolean
           is_installment?: boolean
+          payment_method?: string | null
           purchase_date?: string | null
           store?: string | null
           total_installments?: number | null
