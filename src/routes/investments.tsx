@@ -284,7 +284,7 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
   const handleSave = async () => {
     if (!user || !name.trim()) return;
     setSaving(true);
-    const payload: Record<string, unknown> = {
+    const payload = {
       user_id: user.id,
       type,
       name: name.trim(),
