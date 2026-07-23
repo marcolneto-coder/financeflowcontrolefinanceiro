@@ -284,6 +284,17 @@ function TransactionsPage() {
             );
           })}
         </div>
+        <button
+          onClick={() => setCompact((v) => !v)}
+          className={`sm:ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+            compact
+              ? "bg-primary/10 text-primary border-primary/40"
+              : "bg-muted/40 text-muted-foreground border-transparent hover:text-foreground"
+          }`}
+          title="Alternar densidade da lista"
+        >
+          {compact ? "Modo compacto" : "Modo confortável"}
+        </button>
       </div>
 
       {/* Totals summary based on active filters */}
