@@ -375,8 +375,8 @@ function TransactionsPage() {
 
                     {/* Main info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <p className="text-[15px] font-semibold tracking-tight truncate text-foreground">
+                      <div className={`flex items-center gap-2 ${compact ? "mb-0.5" : "mb-1.5"}`}>
+                        <p className={`${compact ? "text-sm" : "text-[15px]"} font-semibold tracking-tight truncate text-foreground`}>
                           {tx.description}
                         </p>
                         <div className="flex items-center gap-1.5 shrink-0">
