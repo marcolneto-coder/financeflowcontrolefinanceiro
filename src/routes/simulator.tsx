@@ -91,7 +91,7 @@ function SimulatorPage() {
         <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
           <Calculator className="size-4" /> Planejamento
         </p>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Simulador de Parcelamento</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Simulador de Compras</h1>
         <p className="text-sm text-muted-foreground mt-1">Veja o impacto de uma compra parcelada nos próximos meses.</p>
       </header>
 
