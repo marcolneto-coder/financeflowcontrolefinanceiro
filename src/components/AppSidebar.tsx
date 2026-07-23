@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/lib/auth-context";
+import { openCommandPalette } from "@/components/CommandPalette";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
