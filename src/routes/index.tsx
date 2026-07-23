@@ -278,18 +278,19 @@ function DailyExpensesCard({ transactions, total, diff }: {
   diff: number;
 }) {
   const isBad = diff > 0;
+  const animatedTotal = useAnimatedNumber(total);
   const byMethod = { debit: 0, pix: 0, cash: 0, transfer: 0, none: 0 };
   for (const t of transactions) {
     const k = t.paymentMethod ?? "none";
     byMethod[k] += t.amount;
   }
   return (
-    <div className="glass-card p-4 md:p-6">
+    <div className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5">
       <div className="flex justify-between items-start mb-3 md:mb-4">
         <p className="text-xs md:text-sm text-muted-foreground">Dia a dia</p>
         <div className="text-expense"><Wallet className="size-5" /></div>
       </div>
-      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(animatedTotal)}</p>
       <div className="mt-3 space-y-1.5 text-xs">
         <div className="flex justify-between items-center gap-2">
           <span className="text-muted-foreground">Débito</span>
