@@ -84,6 +84,8 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
     if (!description.trim() || parsedAmount <= 0) return;
 
     const hasCreditCard = type === "expense" && creditCardId;
+    const isDaily = type === "expense" && !creditCardId && !isFixed;
+    const finalPaymentMethod: PaymentMethod | undefined = isDaily && paymentMethod ? paymentMethod : undefined;
 
     if (isEdit && editTransaction) {
       await updateTransactionAndFuture({
@@ -98,6 +100,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
         store: store || undefined,
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
+        paymentMethod: finalPaymentMethod,
       });
       await setTransactionTags(editTransaction.id, selectedTags);
     } else {
@@ -114,6 +117,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
         store: store || undefined,
         purchaseDate: hasCreditCard ? purchaseDate : undefined,
         billingMonth: hasCreditCard ? billingMonth : undefined,
+        paymentMethod: finalPaymentMethod,
         tagIds: selectedTags,
       });
     }
@@ -121,6 +125,7 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
   };
 
   const showCardFields = type === "expense" && creditCardId;
+  const showDailyPayment = type === "expense" && !creditCardId && !isFixed;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
