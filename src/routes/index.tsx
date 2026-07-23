@@ -57,10 +57,17 @@ function DashboardPage() {
   const balanceDiff = pctDiff(summary.balance, prevSummary.balance);
 
 
-  const cardExpenses = summary.transactions.filter(
-    (t) => t.type === "expense" && t.creditCardId
-  );
+  const expenseTxs = summary.transactions.filter((t) => t.type === "expense");
+  const cardExpenses = expenseTxs.filter((t) => t.creditCardId);
   const cardTotal = cardExpenses.reduce((s, t) => s + t.amount, 0);
+  const fixedNonCardTotal = expenseTxs.filter((t) => t.isFixed && !t.creditCardId).reduce((s, t) => s + t.amount, 0);
+  const fixedAndCardTotal = cardTotal + fixedNonCardTotal;
+  const dailyExpensesTxs = expenseTxs.filter((t) => !t.creditCardId && !t.isFixed);
+  const dailyTotal = dailyExpensesTxs.reduce((s, t) => s + t.amount, 0);
+
+  const prevExpenseTxs = prevSummary.transactions.filter((t) => t.type === "expense");
+  const prevFixedAndCardTotal = prevExpenseTxs.filter((t) => t.creditCardId || t.isFixed).reduce((s, t) => s + t.amount, 0);
+  const prevDailyTotal = prevExpenseTxs.filter((t) => !t.creditCardId && !t.isFixed).reduce((s, t) => s + t.amount, 0);
 
   const categoryBreakdown = summary.transactions
     .filter((t) => t.type === "expense")
