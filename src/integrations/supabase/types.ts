@@ -77,6 +77,93 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_snapshots: {
+        Row: {
+          breakdown: Json | null
+          created_at: string
+          id: string
+          snapshot_date: string
+          total_value: number
+          user_id: string
+        }
+        Insert: {
+          breakdown?: Json | null
+          created_at?: string
+          id?: string
+          snapshot_date: string
+          total_value: number
+          user_id: string
+        }
+        Update: {
+          breakdown?: Json | null
+          created_at?: string
+          id?: string
+          snapshot_date?: string
+          total_value?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investments: {
+        Row: {
+          avg_price: number
+          cdi_percent: number | null
+          created_at: string
+          current_price: number | null
+          current_value: number | null
+          id: string
+          initial_amount: number | null
+          initial_date: string | null
+          institution: string | null
+          last_update: string | null
+          name: string
+          notes: string | null
+          quantity: number
+          ticker: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_price?: number
+          cdi_percent?: number | null
+          created_at?: string
+          current_price?: number | null
+          current_value?: number | null
+          id?: string
+          initial_amount?: number | null
+          initial_date?: string | null
+          institution?: string | null
+          last_update?: string | null
+          name: string
+          notes?: string | null
+          quantity?: number
+          ticker?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_price?: number
+          cdi_percent?: number | null
+          created_at?: string
+          current_price?: number | null
+          current_value?: number | null
+          id?: string
+          initial_amount?: number | null
+          initial_date?: string | null
+          institution?: string | null
+          last_update?: string | null
+          name?: string
+          notes?: string | null
+          quantity?: number
+          ticker?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           accent_color: string
