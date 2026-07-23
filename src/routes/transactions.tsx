@@ -57,6 +57,11 @@ function TransactionsPage() {
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [highlightId, setHighlightId] = useState<string | undefined>(search.highlight);
   const highlightRef = useRef<HTMLLIElement | null>(null);
+  const [compact, setCompact] = useState<boolean>(() => {
+    if (typeof localStorage === "undefined") return false;
+    return localStorage.getItem("tx-compact") === "1";
+  });
+  useEffect(() => { localStorage.setItem("tx-compact", compact ? "1" : "0"); }, [compact]);
 
   useEffect(() => {
     if (search.year !== undefined) setYear(search.year);
@@ -279,6 +284,17 @@ function TransactionsPage() {
             );
           })}
         </div>
+        <button
+          onClick={() => setCompact((v) => !v)}
+          className={`sm:ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
+            compact
+              ? "bg-primary/10 text-primary border-primary/40"
+              : "bg-muted/40 text-muted-foreground border-transparent hover:text-foreground"
+          }`}
+          title="Alternar densidade da lista"
+        >
+          {compact ? "Modo compacto" : "Modo confortável"}
+        </button>
       </div>
 
       {/* Totals summary based on active filters */}
@@ -340,27 +356,27 @@ function TransactionsPage() {
                     isHighlighted ? "bg-primary/10" : "hover:bg-accent/15"
                   }`}
                 >
-                  <div className="flex items-center gap-3 md:gap-4 pl-5 pr-4 md:pl-6 md:pr-5 py-[18px]">
+                  <div className={`flex items-center gap-3 md:gap-4 ${compact ? "pl-4 pr-3 md:pl-5 md:pr-4 py-2.5" : "pl-5 pr-4 md:pl-6 md:pr-5 py-[18px]"}`}>
                     {/* Type indicator */}
                     <span
-                      className={`absolute left-0 top-1/2 -translate-y-1/2 h-9 w-1 rounded-r ${
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 ${compact ? "h-6" : "h-9"} w-1 rounded-r ${
                         isIncome ? "bg-income" : "bg-expense"
                       }`}
                     />
 
                     {/* Icon */}
                     <div
-                      className={`size-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                      className={`${compact ? "size-8 rounded-lg" : "size-11 rounded-2xl"} flex items-center justify-center shrink-0 ${
                         isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
                       }`}
                     >
-                      <TypeIcon className="size-5" />
+                      <TypeIcon className={compact ? "size-4" : "size-5"} />
                     </div>
 
                     {/* Main info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <p className="text-[15px] font-semibold tracking-tight truncate text-foreground">
+                      <div className={`flex items-center gap-2 ${compact ? "mb-0.5" : "mb-1.5"}`}>
+                        <p className={`${compact ? "text-sm" : "text-[15px]"} font-semibold tracking-tight truncate text-foreground`}>
                           {tx.description}
                         </p>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -409,15 +425,17 @@ function TransactionsPage() {
                     {/* Amount */}
                     <div className="text-right shrink-0 min-w-[90px] md:min-w-[110px]">
                       <p
-                        className={`text-base md:text-lg font-bold tabular-nums tracking-tight ${
+                        className={`${compact ? "text-sm md:text-base" : "text-base md:text-lg"} font-bold tabular-nums tracking-tight ${
                           isIncome ? "text-income" : "text-expense"
                         }`}
                       >
                         {isIncome ? "+" : "−"} {formatCurrency(tx.amount)}
                       </p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
-                        {isIncome ? "Receita" : "Despesa"}
-                      </p>
+                      {!compact && (
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                          {isIncome ? "Receita" : "Despesa"}
+                        </p>
+                      )}
                     </div>
 
                     {/* Actions */}

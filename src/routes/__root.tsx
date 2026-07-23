@@ -4,6 +4,7 @@ import { FinanceProvider } from "../lib/finance-context";
 import { AuthProvider, useAuth } from "../lib/auth-context";
 import { AppSidebar } from "../components/AppSidebar";
 import { PinLockScreen } from "../components/PinLockScreen";
+import { CommandPalette } from "../components/CommandPalette";
 
 import { hasPin, isUnlockedThisSession } from "../lib/security-store";
 import appCss from "../styles.css?url";
@@ -144,5 +145,10 @@ function AppLockGate({ children }: { children: React.ReactNode }) {
   if (locked) {
     return <PinLockScreen onUnlock={() => setLocked(false)} />;
   }
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <CommandPalette />
+    </>
+  );
 }

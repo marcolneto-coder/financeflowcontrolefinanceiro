@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import { DashboardReports } from "@/components/DashboardReports";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 import { ParseNotificationDialog } from "@/components/ParseNotificationDialog";
+import { useAnimatedNumber } from "@/hooks/useAnimatedNumber";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const WEEKS_STORAGE_KEY = "dashboard.weeklyBalance.weeks";
 
@@ -25,7 +27,7 @@ const MONTHS = [
 ];
 
 function DashboardPage() {
-  const { state } = useFinance();
+  const { state, loading } = useFinance();
   const current = getCurrentMonth();
   const [year, setYear] = useState(current.year);
   const [month, setMonth] = useState(current.month);
@@ -91,8 +93,12 @@ function DashboardPage() {
     setYear(y);
   };
 
+  if (loading && state.transactions.length === 0) {
+    return <DashboardSkeleton />;
+  }
+
   return (
-    <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8">
+    <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8 animate-fade-in">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
         <div>
           <p className="text-sm text-muted-foreground mb-1">Visão geral</p>
@@ -211,13 +217,14 @@ function SummaryCard({ label, value, icon, colorClass, diff, invertColor }: {
   // For expenses, an increase (diff > 0) is "bad" → expense color
   const positiveIsGood = !invertColor;
   const isGood = positiveIsGood ? (diff ?? 0) > 0 : (diff ?? 0) < 0;
+  const animated = useAnimatedNumber(value);
   return (
-    <div className="glass-card p-4 md:p-6">
+    <div className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5">
       <div className="flex justify-between items-start mb-3 md:mb-4">
         <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
         <div className={colorClass}>{icon}</div>
       </div>
-      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(value)}</p>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(animated)}</p>
       {diff !== undefined && diff !== 0 && (
         <p className={`text-xs mt-2 flex items-center gap-1 ${isGood ? "text-income" : "text-expense"}`}>
           {diff > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
@@ -233,13 +240,14 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
   total: number; cardExpenses: number; nonCardExpenses: number; diff: number;
 }) {
   const isBad = diff > 0;
+  const animatedTotal = useAnimatedNumber(total);
   return (
-    <div className="glass-card p-4 md:p-6">
+    <div className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5">
       <div className="flex justify-between items-start mb-3 md:mb-4">
         <p className="text-xs md:text-sm text-muted-foreground">Fixas + Cartão</p>
         <div className="text-expense"><TrendingDown className="size-5" /></div>
       </div>
-      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(animatedTotal)}</p>
       <div className="mt-3 space-y-1.5 text-xs">
         <div className="flex justify-between items-center gap-2">
           <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -270,18 +278,19 @@ function DailyExpensesCard({ transactions, total, diff }: {
   diff: number;
 }) {
   const isBad = diff > 0;
+  const animatedTotal = useAnimatedNumber(total);
   const byMethod = { debit: 0, pix: 0, cash: 0, transfer: 0, none: 0 };
   for (const t of transactions) {
     const k = t.paymentMethod ?? "none";
     byMethod[k] += t.amount;
   }
   return (
-    <div className="glass-card p-4 md:p-6">
+    <div className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5">
       <div className="flex justify-between items-start mb-3 md:mb-4">
         <p className="text-xs md:text-sm text-muted-foreground">Dia a dia</p>
         <div className="text-expense"><Wallet className="size-5" /></div>
       </div>
-      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(total)}</p>
+      <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(animatedTotal)}</p>
       <div className="mt-3 space-y-1.5 text-xs">
         <div className="flex justify-between items-center gap-2">
           <span className="text-muted-foreground">Débito</span>
@@ -351,6 +360,42 @@ function WeeklyBalanceCard({ balance }: { balance: number }) {
           onChange={(e) => setWeeks(e.target.value)}
           className="h-8 w-20 rounded-md border border-input bg-transparent px-2 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
+      </div>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8 animate-fade-in">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+        <div>
+          <Skeleton className="h-3 w-24 mb-2" />
+          <Skeleton className="h-8 w-40" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+      </header>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6 mb-8">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="glass-card p-4 md:p-6 space-y-3">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-2 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="glass-card p-4 md:p-6 space-y-3">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-2 w-full" />
+            <Skeleton className="h-2 w-4/5" />
+          </div>
+        ))}
       </div>
     </div>
   );
