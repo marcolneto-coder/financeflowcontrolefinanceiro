@@ -252,6 +252,33 @@ function TransactionsPage() {
         </div>
       )}
 
+      {!showSearch && hasActiveSearch && (
+        <div className="glass-card px-3 py-2 mb-6 flex items-center gap-2 text-xs animate-fade-in">
+          <SlidersHorizontal className="size-3.5 text-primary shrink-0" />
+          <span className="text-muted-foreground shrink-0">
+            {activeFilterCount} filtro{activeFilterCount !== 1 ? "s" : ""} ativo{activeFilterCount !== 1 ? "s" : ""}
+          </span>
+          <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+            {q && <FilterChip label={`"${q}"`} />}
+            {fromDate && <FilterChip label={`De ${fromDate}`} />}
+            {toDate && <FilterChip label={`Até ${toDate}`} />}
+            {minValue && <FilterChip label={`≥ ${minValue}`} />}
+            {maxValue && <FilterChip label={`≤ ${maxValue}`} />}
+            {cardFilter && <FilterChip label={state.creditCards.find((c) => c.id === cardFilter)?.name || "Cartão"} />}
+            {categoryFilter && <FilterChip label={state.categories.find((c) => c.id === categoryFilter)?.name || "Categoria"} />}
+            {onlyFixed && <FilterChip label="Fixas" />}
+            {onlyFixedNoCard && <FilterChip label="Fixas s/ cartão" />}
+            {onlyInstallment && <FilterChip label="Parceladas" />}
+          </div>
+          <button onClick={() => setShowSearch(true)} className="text-primary hover:underline shrink-0 font-medium">
+            Editar
+          </button>
+          <button onClick={clearSearch} className="p-1 rounded hover:bg-accent shrink-0" title="Limpar filtros">
+            <XIcon className="size-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 mb-4">
         <div className="flex items-center gap-1 glass-card p-1">
           <button onClick={() => goMonth(-1)} className="px-3 py-1.5 text-sm rounded-lg hover:bg-accent transition-colors">←</button>
