@@ -62,6 +62,7 @@ function InvestmentsPage() {
   const [editing, setEditing] = useState<Investment | null>(null);
   const [creating, setCreating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [importing, setImporting] = useState(false);
   const refreshQuotesFn = useServerFn(fetchQuotes);
 
   const handleRefreshQuotes = async () => {
