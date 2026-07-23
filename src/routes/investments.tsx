@@ -74,14 +74,16 @@ function InvestmentsPage() {
     }
     setRefreshing(true);
     try {
-      const tickers = Array.from(new Set(marketItems.map((i) => i.ticker!.toUpperCase())));
+      const normalizeTicker = (ticker: string) => ticker.trim().toUpperCase().replace(/\.SA$/, "");
+      const tickers = Array.from(new Set(marketItems.map((i) => normalizeTicker(i.ticker || "")).filter(Boolean)));
       const quotes = await refreshQuotesFn({ data: { tickers } });
       const byTicker = new Map(quotes.map((q) => [q.ticker, q]));
       let updated = 0;
       let failed = 0;
+      const failureMessages = new Set<string>();
       const now = new Date().toISOString();
       for (const inv of marketItems) {
-        const q = byTicker.get(inv.ticker!.toUpperCase());
+        const q = byTicker.get(normalizeTicker(inv.ticker || ""));
         if (q && q.price != null && q.price > 0) {
           const newValue = q.price * inv.quantity;
           const { error } = await supabase
@@ -92,10 +94,14 @@ function InvestmentsPage() {
           else updated++;
         } else {
           failed++;
+          if (q?.error) failureMessages.add(`${normalizeTicker(inv.ticker || "")}: ${q.error}`);
         }
       }
       if (updated) toast.success(`${updated} ativo(s) atualizado(s)${failed ? ` · ${failed} sem cotação` : ""}.`);
-      else toast.error("Não foi possível obter cotações. Verifique tickers ou configure BRAPI_TOKEN.");
+      else {
+        const detail = Array.from(failureMessages).slice(0, 2).join(" · ");
+        toast.error(detail || "Não foi possível obter cotações. Verifique se os tickers estão corretos.");
+      }
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Falha ao atualizar cotações.");
