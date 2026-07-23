@@ -436,7 +436,7 @@ function TransactionsPage() {
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1.5">
                           <Calendar className="size-3.5 opacity-70" />
-                          {new Date(tx.date + "T12:00:00").toLocaleDateString("pt-BR")}
+                          {new Date((tx.purchaseDate || tx.date) + "T12:00:00").toLocaleDateString("pt-BR")}
                         </span>
                         {cat && (
                           <>
