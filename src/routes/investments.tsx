@@ -12,11 +12,10 @@ import {
   computeCurrentValue,
 } from "@/lib/investments-store";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, PiggyBank, RefreshCw, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, PiggyBank, RefreshCw } from "lucide-react";
 import { fetchQuotes } from "@/lib/quotes.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ImportInvestmentsDialog } from "@/components/ImportInvestmentsDialog";
 
 export const Route = createFileRoute("/investments")({
   component: InvestmentsPage,
@@ -62,7 +61,7 @@ function InvestmentsPage() {
   const [editing, setEditing] = useState<Investment | null>(null);
   const [creating, setCreating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [importing, setImporting] = useState(false);
+  
   const refreshQuotesFn = useServerFn(fetchQuotes);
 
   const handleRefreshQuotes = async () => {
@@ -156,14 +155,12 @@ function InvestmentsPage() {
           </p>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Investimentos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Acompanhe sua carteira. Cadastre manualmente ou importe extratos (em breve).
+            Acompanhe sua carteira. Cadastre manualmente e atualize as cotações.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onClick={() => setImporting(true)}>
-            <Upload className="size-4" /> Importar extrato
-          </Button>
           <Button variant="outline" onClick={handleRefreshQuotes} disabled={refreshing}>
+
             <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
             {refreshing ? "Atualizando…" : "Atualizar cotações"}
           </Button>
@@ -308,13 +305,6 @@ function InvestmentsPage() {
           investment={editing}
           onClose={() => { setCreating(false); setEditing(null); }}
           onSaved={() => { setCreating(false); setEditing(null); load(); }}
-        />
-      )}
-
-      {importing && (
-        <ImportInvestmentsDialog
-          onClose={() => setImporting(false)}
-          onDone={() => { setImporting(false); load(); }}
         />
       )}
     </div>
