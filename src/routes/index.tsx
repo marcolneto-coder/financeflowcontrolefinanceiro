@@ -116,7 +116,11 @@ function DashboardPage() {
       )}
 
       {showParseNotif && (
-        <ParseNotificationDialog onClose={() => setShowParseNotif(false)} />
+        <ParseNotificationDialog
+          initialText={sharedText}
+          autoAnalyze={!!sharedText}
+          onClose={() => { setShowParseNotif(false); setSharedText(undefined); }}
+        />
       )}
 
 
