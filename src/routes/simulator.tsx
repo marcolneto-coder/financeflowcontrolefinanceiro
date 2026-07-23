@@ -9,7 +9,7 @@ export const Route = createFileRoute("/simulator")({
   component: SimulatorPage,
   head: () => ({
     meta: [
-      { title: "Simulador de Parcelamento — Finance Flow" },
+      { title: "Simulador de Compras — Finance Flow" },
       { name: "description", content: "Simule o impacto de uma compra parcelada" },
     ],
   }),
