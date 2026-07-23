@@ -157,9 +157,15 @@ function InvestmentsPage() {
             Acompanhe sua carteira. Cadastre manualmente ou importe extratos (em breve).
           </p>
         </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus className="size-4" /> Novo ativo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleRefreshQuotes} disabled={refreshing}>
+            <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Atualizando…" : "Atualizar cotações"}
+          </Button>
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="size-4" /> Novo ativo
+          </Button>
+        </div>
       </header>
 
       {/* Summary cards */}
