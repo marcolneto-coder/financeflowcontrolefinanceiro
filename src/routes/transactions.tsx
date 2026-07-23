@@ -166,7 +166,7 @@ function TransactionsPage() {
       </header>
 
       {showSearch && (
-        <div className="glass-card p-4 mb-6 space-y-3">
+        <div className="glass-card p-4 mb-6 space-y-3 animate-fade-in">
           <div className="flex items-center gap-2">
             <Search className="size-4 text-muted-foreground" />
             <input
@@ -177,10 +177,17 @@ function TransactionsPage() {
               className="flex-1 px-3 py-2 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {hasActiveSearch && (
-              <button onClick={clearSearch} className="p-2 rounded-lg hover:bg-accent" title="Limpar">
+              <button onClick={clearSearch} className="p-2 rounded-lg hover:bg-accent" title="Limpar filtros">
                 <XIcon className="size-4" />
               </button>
             )}
+            <button
+              onClick={() => setShowSearch(false)}
+              className="p-2 rounded-lg hover:bg-accent"
+              title="Minimizar filtros"
+            >
+              <ChevronUp className="size-4" />
+            </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
