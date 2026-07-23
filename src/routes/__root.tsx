@@ -97,6 +97,7 @@ function RootComponent() {
   return (
     <AuthProvider>
       <AuthGate />
+      <Toaster richColors position="top-right" />
     </AuthProvider>
   );
 }
