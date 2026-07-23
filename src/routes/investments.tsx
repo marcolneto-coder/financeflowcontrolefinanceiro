@@ -155,14 +155,12 @@ function InvestmentsPage() {
           </p>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Investimentos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Acompanhe sua carteira. Cadastre manualmente ou importe extratos (em breve).
+            Acompanhe sua carteira. Cadastre manualmente e atualize as cotações.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onClick={() => setImporting(true)}>
-            <Upload className="size-4" /> Importar extrato
-          </Button>
           <Button variant="outline" onClick={handleRefreshQuotes} disabled={refreshing}>
+
             <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
             {refreshing ? "Atualizando…" : "Atualizar cotações"}
           </Button>
