@@ -217,7 +217,7 @@ export function CommandPalette() {
             </CommandItem>
             <CommandItem onSelect={() => go("/simulator")}>
               <Calculator className="size-4" />
-              Simulador
+              Simulador de Compras
             </CommandItem>
             <CommandItem onSelect={() => go("/import")}>
               <FileUp className="size-4" />
