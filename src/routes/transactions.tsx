@@ -93,6 +93,7 @@ function TransactionsPage() {
   const [onlyInstallment, setOnlyInstallment] = useState(false);
 
   const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyFixedNoCard || onlyInstallment;
+  const activeFilterCount = [q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment].filter(Boolean).length;
 
   const visibleTx = useMemo(() => {
     return state.transactions
