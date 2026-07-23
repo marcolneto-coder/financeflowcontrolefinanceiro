@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { type Transaction, type TransactionType, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, CreditCard as CreditCardIcon, Repeat, Calendar } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, CreditCard as CreditCardIcon, Repeat, Calendar, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 
