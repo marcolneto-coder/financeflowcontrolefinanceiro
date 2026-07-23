@@ -333,10 +333,12 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
   const isCdi = type === "cdi";
   const isPrev = type === "previdencia";
   const isMarket = type === "fii" || type === "etf" || type === "acao" || type === "cripto";
+  const showInitial = isCdi || isPrev || type === "outro";
 
   const handleSave = async () => {
     if (!user || !name.trim()) return;
     setSaving(true);
+    const newCurrent = currentValue ? Number(currentValue) : null;
     const payload = {
       user_id: user.id,
       type,
@@ -345,7 +347,7 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
       institution: institution.trim() || null,
       quantity: Number(quantity) || 0,
       avg_price: Number(avgPrice) || 0,
-      current_value: currentValue ? Number(currentValue) : null,
+      current_value: newCurrent,
       cdi_percent: cdiPercent ? Number(cdiPercent) : null,
       initial_amount: initialAmount ? Number(initialAmount) : null,
       initial_date: initialDate || null,
@@ -354,12 +356,26 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
     };
     if (investment) {
       await supabase.from("investments").update(payload).eq("id", investment.id);
+      // Feedback de variação para atualizações manuais (não-mercado)
+      if (!isMarket && newCurrent != null && newCurrent > 0) {
+        const prev = investment.currentValue ?? investment.initialAmount ?? 0;
+        if (prev > 0 && Math.abs(newCurrent - prev) > 0.001) {
+          const delta = newCurrent - prev;
+          const pct = (delta / prev) * 100;
+          const sign = delta >= 0 ? "+" : "";
+          const label = delta >= 0 ? "Ganho" : "Perda";
+          const msg = `${label}: ${sign}${delta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} (${sign}${pct.toFixed(2)}%) desde a última atualização.`;
+          if (delta >= 0) toast.success(msg);
+          else toast.error(msg);
+        }
+      }
     } else {
       await supabase.from("investments").insert(payload);
     }
     setSaving(false);
     onSaved();
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
