@@ -274,6 +274,40 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
             <span className="text-sm">Despesa/Receita fixa (recorrente)</span>
           </label>
 
+          {/* Daily expense payment method */}
+          {showDailyPayment && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                Forma de pagamento <span className="text-muted-foreground/70">(dia a dia — opcional)</span>
+              </label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {([
+                  { key: "", label: "Nenhuma", icon: null },
+                  { key: "debit", label: "Débito", icon: <CreditCardIcon className="size-3.5" /> },
+                  { key: "pix", label: "Pix", icon: <Smartphone className="size-3.5" /> },
+                  { key: "cash", label: "Dinheiro", icon: <Banknote className="size-3.5" /> },
+                ] as const).map((opt) => {
+                  const sel = paymentMethod === opt.key;
+                  return (
+                    <button
+                      key={opt.key || "none"}
+                      type="button"
+                      onClick={() => setPaymentMethod(opt.key as PaymentMethod | "")}
+                      className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                        sel
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-input border-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {opt.icon}
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Installment */}
           {type === "expense" && !isEdit && (
             <>
