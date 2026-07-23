@@ -356,21 +356,21 @@ function TransactionsPage() {
                     isHighlighted ? "bg-primary/10" : "hover:bg-accent/15"
                   }`}
                 >
-                  <div className="flex items-center gap-3 md:gap-4 pl-5 pr-4 md:pl-6 md:pr-5 py-[18px]">
+                  <div className={`flex items-center gap-3 md:gap-4 ${compact ? "pl-4 pr-3 md:pl-5 md:pr-4 py-2.5" : "pl-5 pr-4 md:pl-6 md:pr-5 py-[18px]"}`}>
                     {/* Type indicator */}
                     <span
-                      className={`absolute left-0 top-1/2 -translate-y-1/2 h-9 w-1 rounded-r ${
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 ${compact ? "h-6" : "h-9"} w-1 rounded-r ${
                         isIncome ? "bg-income" : "bg-expense"
                       }`}
                     />
 
                     {/* Icon */}
                     <div
-                      className={`size-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                      className={`${compact ? "size-8 rounded-lg" : "size-11 rounded-2xl"} flex items-center justify-center shrink-0 ${
                         isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
                       }`}
                     >
-                      <TypeIcon className="size-5" />
+                      <TypeIcon className={compact ? "size-4" : "size-5"} />
                     </div>
 
                     {/* Main info */}
