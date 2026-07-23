@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "../lib/auth-context";
 import { AppSidebar } from "../components/AppSidebar";
 import { PinLockScreen } from "../components/PinLockScreen";
 import { CommandPalette } from "../components/CommandPalette";
+import { Toaster } from "../components/ui/sonner";
 
 import { hasPin, isUnlockedThisSession } from "../lib/security-store";
 import appCss from "../styles.css?url";
