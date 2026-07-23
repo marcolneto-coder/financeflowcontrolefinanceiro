@@ -64,6 +64,7 @@ export function ParseNotificationDialog({ onClose, initialText, autoAnalyze }: P
       setLoading(false);
     }
   };
+  analyzeRef.current = handleAnalyze;
 
   if (prefill) {
     return (
