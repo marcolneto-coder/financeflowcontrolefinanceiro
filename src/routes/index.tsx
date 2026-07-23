@@ -27,7 +27,7 @@ const MONTHS = [
 ];
 
 function DashboardPage() {
-  const { state } = useFinance();
+  const { state, loading } = useFinance();
   const current = getCurrentMonth();
   const [year, setYear] = useState(current.year);
   const [month, setMonth] = useState(current.month);
