@@ -307,13 +307,6 @@ function InvestmentsPage() {
           onSaved={() => { setCreating(false); setEditing(null); load(); }}
         />
       )}
-
-      {importing && (
-        <ImportInvestmentsDialog
-          onClose={() => setImporting(false)}
-          onDone={() => { setImporting(false); load(); }}
-        />
-      )}
     </div>
   );
 }
