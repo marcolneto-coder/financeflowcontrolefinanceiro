@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import { DashboardReports } from "@/components/DashboardReports";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 import { ParseNotificationDialog } from "@/components/ParseNotificationDialog";
+import { useAnimatedNumber } from "@/hooks/useAnimatedNumber";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const WEEKS_STORAGE_KEY = "dashboard.weeklyBalance.weeks";
 
