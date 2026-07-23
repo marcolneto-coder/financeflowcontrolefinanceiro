@@ -57,6 +57,11 @@ function TransactionsPage() {
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [highlightId, setHighlightId] = useState<string | undefined>(search.highlight);
   const highlightRef = useRef<HTMLLIElement | null>(null);
+  const [compact, setCompact] = useState<boolean>(() => {
+    if (typeof localStorage === "undefined") return false;
+    return localStorage.getItem("tx-compact") === "1";
+  });
+  useEffect(() => { localStorage.setItem("tx-compact", compact ? "1" : "0"); }, [compact]);
 
   useEffect(() => {
     if (search.year !== undefined) setYear(search.year);
