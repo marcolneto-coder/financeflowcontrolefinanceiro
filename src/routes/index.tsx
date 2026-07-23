@@ -31,6 +31,19 @@ function DashboardPage() {
   const [month, setMonth] = useState(current.month);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showParseNotif, setShowParseNotif] = useState(false);
+  const [sharedText, setSharedText] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const pending = sessionStorage.getItem("shareTarget.pendingText");
+      if (pending) {
+        sessionStorage.removeItem("shareTarget.pendingText");
+        setSharedText(pending);
+        setShowParseNotif(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const summary = getMonthSummary(state.transactions, year, month);
   const prevSummary = getMonthSummary(
