@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { type Transaction, type TransactionType, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, CreditCard as CreditCardIcon, Repeat, Calendar } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, CreditCard as CreditCardIcon, Repeat, Calendar, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 
@@ -93,6 +93,7 @@ function TransactionsPage() {
   const [onlyInstallment, setOnlyInstallment] = useState(false);
 
   const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyFixedNoCard || onlyInstallment;
+  const activeFilterCount = [q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment].filter(Boolean).length;
 
   const visibleTx = useMemo(() => {
     return state.transactions
@@ -148,9 +149,14 @@ function TransactionsPage() {
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight font-display">Transações</h1>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" size="sm" onClick={() => setShowSearch((s) => !s)} className="flex-1 sm:flex-none">
+          <Button variant={hasActiveSearch ? "default" : "outline"} size="sm" onClick={() => setShowSearch((s) => !s)} className="flex-1 sm:flex-none relative">
             <SlidersHorizontal className="size-4 mr-2" />
             <span>Buscar</span>
+            {activeFilterCount > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-background/20 text-[10px] font-semibold px-1.5 min-w-[18px] h-[18px]">
+                {activeFilterCount}
+              </span>
+            )}
           </Button>
           <Button size="sm" onClick={() => { setEditTx(null); setShowForm(true); }} className="flex-1 sm:flex-none">
             <Plus className="size-4 mr-2" />
@@ -160,7 +166,7 @@ function TransactionsPage() {
       </header>
 
       {showSearch && (
-        <div className="glass-card p-4 mb-6 space-y-3">
+        <div className="glass-card p-4 mb-6 space-y-3 animate-fade-in">
           <div className="flex items-center gap-2">
             <Search className="size-4 text-muted-foreground" />
             <input
@@ -171,10 +177,17 @@ function TransactionsPage() {
               className="flex-1 px-3 py-2 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {hasActiveSearch && (
-              <button onClick={clearSearch} className="p-2 rounded-lg hover:bg-accent" title="Limpar">
+              <button onClick={clearSearch} className="p-2 rounded-lg hover:bg-accent" title="Limpar filtros">
                 <XIcon className="size-4" />
               </button>
             )}
+            <button
+              onClick={() => setShowSearch(false)}
+              className="p-2 rounded-lg hover:bg-accent"
+              title="Minimizar filtros"
+            >
+              <ChevronUp className="size-4" />
+            </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
@@ -236,6 +249,33 @@ function TransactionsPage() {
               Buscar em todos os meses (ignora filtro de mês)
             </label>
           )}
+        </div>
+      )}
+
+      {!showSearch && hasActiveSearch && (
+        <div className="glass-card px-3 py-2 mb-6 flex items-center gap-2 text-xs animate-fade-in">
+          <SlidersHorizontal className="size-3.5 text-primary shrink-0" />
+          <span className="text-muted-foreground shrink-0">
+            {activeFilterCount} filtro{activeFilterCount !== 1 ? "s" : ""} ativo{activeFilterCount !== 1 ? "s" : ""}
+          </span>
+          <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+            {q && <FilterChip label={`"${q}"`} />}
+            {fromDate && <FilterChip label={`De ${fromDate}`} />}
+            {toDate && <FilterChip label={`Até ${toDate}`} />}
+            {minValue && <FilterChip label={`≥ ${minValue}`} />}
+            {maxValue && <FilterChip label={`≤ ${maxValue}`} />}
+            {cardFilter && <FilterChip label={state.creditCards.find((c) => c.id === cardFilter)?.name || "Cartão"} />}
+            {categoryFilter && <FilterChip label={state.categories.find((c) => c.id === categoryFilter)?.name || "Categoria"} />}
+            {onlyFixed && <FilterChip label="Fixas" />}
+            {onlyFixedNoCard && <FilterChip label="Fixas s/ cartão" />}
+            {onlyInstallment && <FilterChip label="Parceladas" />}
+          </div>
+          <button onClick={() => setShowSearch(true)} className="text-primary hover:underline shrink-0 font-medium">
+            Editar
+          </button>
+          <button onClick={clearSearch} className="p-1 rounded hover:bg-accent shrink-0" title="Limpar filtros">
+            <XIcon className="size-3.5" />
+          </button>
         </div>
       )}
 
@@ -502,5 +542,13 @@ function TransactionsPage() {
         />
       )}
     </div>
+  );
+}
+
+function FilterChip({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium max-w-[180px] truncate">
+      {label}
+    </span>
   );
 }
