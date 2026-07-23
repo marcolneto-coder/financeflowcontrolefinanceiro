@@ -435,17 +435,23 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
             </div>
           )}
 
-          {isCdi && (
+          {showInitial && (
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">% do CDI</label>
-                <input type="number" step="0.1" value={cdiPercent} onChange={(e) => setCdiPercent(e.target.value)}
-                  placeholder="100" className="w-full px-3 py-2 rounded-md bg-input border-0 text-sm tabular-nums" />
-              </div>
-              <div>
+              {isCdi && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">% do CDI</label>
+                  <input type="number" step="0.1" value={cdiPercent} onChange={(e) => setCdiPercent(e.target.value)}
+                    placeholder="100" className="w-full px-3 py-2 rounded-md bg-input border-0 text-sm tabular-nums" />
+                </div>
+              )}
+              <div className={isCdi ? "" : "col-span-2"}>
                 <label className="text-xs text-muted-foreground mb-1 block">Aporte inicial (R$)</label>
                 <input type="number" step="0.01" value={initialAmount} onChange={(e) => setInitialAmount(e.target.value)}
+                  placeholder="Total investido até hoje"
                   className="w-full px-3 py-2 rounded-md bg-input border-0 text-sm tabular-nums" />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Usado como base de custo para calcular ganho/perda acumulado.
+                </p>
               </div>
               <div className="col-span-2">
                 <label className="text-xs text-muted-foreground mb-1 block">Data do aporte</label>
@@ -454,6 +460,7 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
               </div>
             </div>
           )}
+
 
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
