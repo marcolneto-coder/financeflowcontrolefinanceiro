@@ -30,6 +30,7 @@ function DashboardPage() {
   const [year, setYear] = useState(current.year);
   const [month, setMonth] = useState(current.month);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [showParseNotif, setShowParseNotif] = useState(false);
 
   const summary = getMonthSummary(state.transactions, year, month);
   const prevSummary = getMonthSummary(
