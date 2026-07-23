@@ -26,6 +26,8 @@ export interface CreditCard {
   brand: CardBrand;
 }
 
+export type PaymentMethod = "debit" | "pix" | "cash";
+
 export interface Transaction {
   id: string;
   description: string;
@@ -42,6 +44,7 @@ export interface Transaction {
   store?: string;
   purchaseDate?: string;
   billingMonth?: string; // YYYY-MM
+  paymentMethod?: PaymentMethod;
   createdAt?: string;
   tagIds?: string[];
 }
