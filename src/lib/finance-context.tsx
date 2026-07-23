@@ -89,7 +89,7 @@ function mapTx(r: TxRow): Transaction {
     store: r.store ?? undefined,
     purchaseDate: r.purchase_date ?? undefined,
     billingMonth: r.billing_month ?? undefined,
-    paymentMethod: (pm === "debit" || pm === "pix" || pm === "cash") ? pm : undefined,
+    paymentMethod: (pm === "debit" || pm === "pix" || pm === "cash" || pm === "transfer") ? pm : undefined,
     createdAt: r.created_at,
   };
 }

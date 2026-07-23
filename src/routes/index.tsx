@@ -265,12 +265,12 @@ function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
 }
 
 function DailyExpensesCard({ transactions, total, diff }: {
-  transactions: Array<{ paymentMethod?: "debit" | "pix" | "cash"; amount: number }>;
+  transactions: Array<{ paymentMethod?: "debit" | "pix" | "cash" | "transfer"; amount: number }>;
   total: number;
   diff: number;
 }) {
   const isBad = diff > 0;
-  const byMethod = { debit: 0, pix: 0, cash: 0, none: 0 };
+  const byMethod = { debit: 0, pix: 0, cash: 0, transfer: 0, none: 0 };
   for (const t of transactions) {
     const k = t.paymentMethod ?? "none";
     byMethod[k] += t.amount;
@@ -290,6 +290,10 @@ function DailyExpensesCard({ transactions, total, diff }: {
         <div className="flex justify-between items-center gap-2">
           <span className="text-muted-foreground">Pix</span>
           <span className="tabular-nums font-medium">{formatCurrency(byMethod.pix)}</span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="text-muted-foreground">Transferência</span>
+          <span className="tabular-nums font-medium">{formatCurrency(byMethod.transfer)}</span>
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="text-muted-foreground">Dinheiro</span>

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useFinance } from "@/lib/finance-context";
 import { type Transaction, type TransactionType, type PaymentMethod, formatCurrency, getNextMonth } from "@/lib/finance-store";
-import { X, Plus, CreditCard as CreditCardIcon, Smartphone, Banknote } from "lucide-react";
+import { X, Plus, CreditCard as CreditCardIcon, Smartphone, Banknote, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const MONTHS = [
@@ -280,11 +280,12 @@ export function TransactionFormDialog({ editTransaction, onClose, prefill }: Pro
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
                 Forma de pagamento <span className="text-muted-foreground/70">(dia a dia — opcional)</span>
               </label>
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-5 gap-1.5">
                 {([
                   { key: "", label: "Nenhuma", icon: null },
                   { key: "debit", label: "Débito", icon: <CreditCardIcon className="size-3.5" /> },
                   { key: "pix", label: "Pix", icon: <Smartphone className="size-3.5" /> },
+                  { key: "transfer", label: "Transf.", icon: <ArrowLeftRight className="size-3.5" /> },
                   { key: "cash", label: "Dinheiro", icon: <Banknote className="size-3.5" /> },
                 ] as const).map((opt) => {
                   const sel = paymentMethod === opt.key;
