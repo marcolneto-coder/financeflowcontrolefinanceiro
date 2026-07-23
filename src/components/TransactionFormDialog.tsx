@@ -12,29 +12,32 @@ const MONTHS = [
 interface Props {
   editTransaction: Transaction | null;
   onClose: () => void;
+  prefill?: Partial<Transaction>;
 }
 
-export function TransactionFormDialog({ editTransaction, onClose }: Props) {
+export function TransactionFormDialog({ editTransaction, onClose, prefill }: Props) {
   const { state, addTransaction, updateTransactionAndFuture, setTransactionTags, addCategory } = useFinance();
   const isEdit = !!editTransaction;
+  const seed = editTransaction ?? prefill ?? null;
   const [selectedTags, setSelectedTags] = useState<string[]>(editTransaction?.tagIds || []);
 
-  const [type, setType] = useState<TransactionType>(editTransaction?.type || "expense");
-  const [description, setDescription] = useState(editTransaction?.description || "");
-  const [amount, setAmount] = useState(editTransaction?.amount?.toString() || "");
-  const [categoryId, setCategoryId] = useState(editTransaction?.categoryId || "");
-  const [date, setDate] = useState(editTransaction?.date || new Date().toISOString().split("T")[0]);
-  const [isFixed, setIsFixed] = useState(editTransaction?.isFixed || false);
-  const [isInstallment, setIsInstallment] = useState(editTransaction?.isInstallment || false);
-  const [totalInstallments, setTotalInstallments] = useState(editTransaction?.totalInstallments?.toString() || "2");
-  const [creditCardId, setCreditCardId] = useState(editTransaction?.creditCardId || "");
-  const [store, setStore] = useState(editTransaction?.store || "");
-  const [purchaseDate, setPurchaseDate] = useState(editTransaction?.purchaseDate || new Date().toISOString().split("T")[0]);
-  
+  const [type, setType] = useState<TransactionType>(seed?.type || "expense");
+  const [description, setDescription] = useState(seed?.description || "");
+  const [amount, setAmount] = useState(seed?.amount ? String(seed.amount) : "");
+  const [categoryId, setCategoryId] = useState(seed?.categoryId || "");
+  const [date, setDate] = useState(seed?.date || new Date().toISOString().split("T")[0]);
+  const [isFixed, setIsFixed] = useState(seed?.isFixed || false);
+  const [isInstallment, setIsInstallment] = useState(seed?.isInstallment || false);
+  const [totalInstallments, setTotalInstallments] = useState(seed?.totalInstallments?.toString() || "2");
+  const [creditCardId, setCreditCardId] = useState(seed?.creditCardId || "");
+  const [store, setStore] = useState(seed?.store || "");
+  const [purchaseDate, setPurchaseDate] = useState(seed?.purchaseDate || new Date().toISOString().split("T")[0]);
+
   // Billing month: default to next month
   const nextMonth = getNextMonth();
-  const defaultBillingMonth = editTransaction?.billingMonth || `${nextMonth.year}-${String(nextMonth.month + 1).padStart(2, "0")}`;
+  const defaultBillingMonth = seed?.billingMonth || `${nextMonth.year}-${String(nextMonth.month + 1).padStart(2, "0")}`;
   const [billingMonth, setBillingMonth] = useState(defaultBillingMonth);
+
   
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
