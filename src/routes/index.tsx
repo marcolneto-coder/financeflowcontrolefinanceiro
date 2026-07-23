@@ -131,13 +131,18 @@ function DashboardPage() {
       )}
 
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6 mb-8">
         <SummaryCard label="Receitas" value={summary.income} icon={<TrendingUp className="size-5" />} colorClass="text-income" diff={pctDiff(summary.income, prevSummary.income)} />
         <ExpensesBreakdownCard
-          total={summary.expenses}
+          total={fixedAndCardTotal}
           cardExpenses={cardTotal}
-          nonCardExpenses={summary.expenses - cardTotal}
-          diff={pctDiff(summary.expenses, prevSummary.expenses)}
+          nonCardExpenses={fixedNonCardTotal}
+          diff={pctDiff(fixedAndCardTotal, prevFixedAndCardTotal)}
+        />
+        <DailyExpensesCard
+          transactions={dailyExpensesTxs}
+          total={dailyTotal}
+          diff={pctDiff(dailyTotal, prevDailyTotal)}
         />
         <SummaryCard label="Saldo" value={summary.balance} icon={<Wallet className="size-5" />} colorClass="text-primary" diff={balanceDiff} />
         <WeeklyBalanceCard balance={summary.balance} />
