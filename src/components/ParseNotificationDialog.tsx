@@ -20,6 +20,15 @@ export function ParseNotificationDialog({ onClose, initialText, autoAnalyze }: P
   const [prefill, setPrefill] = useState<Partial<Transaction> | null>(null);
   const [confidence, setConfidence] = useState<ParseNotificationResult["confidence"]>();
   const [autoTriggered, setAutoTriggered] = useState(false);
+  const analyzeRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    if (autoAnalyze && initialText && !autoTriggered) {
+      setAutoTriggered(true);
+      analyzeRef.current();
+    }
+  }, [autoAnalyze, initialText, autoTriggered]);
+
 
   const handleAnalyze = async () => {
     if (!text.trim()) return;
