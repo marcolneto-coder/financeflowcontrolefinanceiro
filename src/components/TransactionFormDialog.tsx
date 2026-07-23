@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useFinance } from "@/lib/finance-context";
 import { type Transaction, type TransactionType, type PaymentMethod, formatCurrency, getNextMonth } from "@/lib/finance-store";
-import { X, Plus, CreditCard as CreditCardIcon, Smartphone, Banknote } from "lucide-react";
+import { X, Plus, CreditCard as CreditCardIcon, Smartphone, Banknote, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const MONTHS = [
