@@ -93,8 +93,12 @@ function DashboardPage() {
     setYear(y);
   };
 
+  if (loading && state.transactions.length === 0) {
+    return <DashboardSkeleton />;
+  }
+
   return (
-    <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8">
+    <div className="p-4 md:p-8 max-w-6xl pt-16 md:pt-8 animate-fade-in">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
         <div>
           <p className="text-sm text-muted-foreground mb-1">Visão geral</p>
