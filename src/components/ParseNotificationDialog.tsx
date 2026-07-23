@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFinance } from "@/lib/finance-context";
@@ -8,15 +8,27 @@ import type { Transaction } from "@/lib/finance-store";
 
 interface Props {
   onClose: () => void;
+  initialText?: string;
+  autoAnalyze?: boolean;
 }
 
-export function ParseNotificationDialog({ onClose }: Props) {
+export function ParseNotificationDialog({ onClose, initialText, autoAnalyze }: Props) {
   const { state } = useFinance();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prefill, setPrefill] = useState<Partial<Transaction> | null>(null);
   const [confidence, setConfidence] = useState<ParseNotificationResult["confidence"]>();
+  const [autoTriggered, setAutoTriggered] = useState(false);
+  const analyzeRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    if (autoAnalyze && initialText && !autoTriggered) {
+      setAutoTriggered(true);
+      analyzeRef.current();
+    }
+  }, [autoAnalyze, initialText, autoTriggered]);
+
 
   const handleAnalyze = async () => {
     if (!text.trim()) return;
@@ -52,6 +64,7 @@ export function ParseNotificationDialog({ onClose }: Props) {
       setLoading(false);
     }
   };
+  analyzeRef.current = handleAnalyze;
 
   if (prefill) {
     return (

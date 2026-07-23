@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SimulatorRouteImport } from './routes/simulator'
+import { Route as ShareRouteImport } from './routes/share'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as CardsRouteImport } from './routes/cards'
@@ -26,6 +27,11 @@ const TransactionsRoute = TransactionsRouteImport.update({
 const SimulatorRoute = SimulatorRouteImport.update({
   id: '/simulator',
   path: '/simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareRoute = ShareRouteImport.update({
+  id: '/share',
+  path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/cards': typeof CardsRouteWithChildren
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
+  '/share': typeof ShareRoute
   '/simulator': typeof SimulatorRoute
   '/transactions': typeof TransactionsRoute
   '/cards/$cardId/invoice': typeof CardsCardIdInvoiceRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/cards': typeof CardsRouteWithChildren
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
+  '/share': typeof ShareRoute
   '/simulator': typeof SimulatorRoute
   '/transactions': typeof TransactionsRoute
   '/cards/$cardId/invoice': typeof CardsCardIdInvoiceRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/cards': typeof CardsRouteWithChildren
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
+  '/share': typeof ShareRoute
   '/simulator': typeof SimulatorRoute
   '/transactions': typeof TransactionsRoute
   '/cards/$cardId/invoice': typeof CardsCardIdInvoiceRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/cards'
     | '/import'
     | '/settings'
+    | '/share'
     | '/simulator'
     | '/transactions'
     | '/cards/$cardId/invoice'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/cards'
     | '/import'
     | '/settings'
+    | '/share'
     | '/simulator'
     | '/transactions'
     | '/cards/$cardId/invoice'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/cards'
     | '/import'
     | '/settings'
+    | '/share'
     | '/simulator'
     | '/transactions'
     | '/cards/$cardId/invoice'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   CardsRoute: typeof CardsRouteWithChildren
   ImportRoute: typeof ImportRoute
   SettingsRoute: typeof SettingsRoute
+  ShareRoute: typeof ShareRoute
   SimulatorRoute: typeof SimulatorRoute
   TransactionsRoute: typeof TransactionsRoute
 }
@@ -147,6 +160,13 @@ declare module '@tanstack/react-router' {
       path: '/simulator'
       fullPath: '/simulator'
       preLoaderRoute: typeof SimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share': {
+      id: '/share'
+      path: '/share'
+      fullPath: '/share'
+      preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   CardsRoute: CardsRouteWithChildren,
   ImportRoute: ImportRoute,
   SettingsRoute: SettingsRoute,
+  ShareRoute: ShareRoute,
   SimulatorRoute: SimulatorRoute,
   TransactionsRoute: TransactionsRoute,
 }
