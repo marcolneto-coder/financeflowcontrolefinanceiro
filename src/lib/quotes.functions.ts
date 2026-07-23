@@ -16,7 +16,8 @@ export type QuoteResult = {
 export const fetchQuotes = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }): Promise<QuoteResult[]> => {
-    const tickers = Array.from(new Set(data.tickers.map((t) => t.trim().toUpperCase()))).filter(Boolean);
+    const normalizeTicker = (ticker: string) => ticker.trim().toUpperCase().replace(/\.SA$/, "");
+    const tickers = Array.from(new Set(data.tickers.map(normalizeTicker))).filter(Boolean);
     if (!tickers.length) return [];
 
     const token = process.env.BRAPI_TOKEN;
@@ -44,15 +45,16 @@ export const fetchQuotes = createServerFn({ method: "POST" })
       };
       const map = new Map<string, QuoteResult>();
       for (const r of json.results || []) {
-        map.set(r.symbol.toUpperCase(), {
-          ticker: r.symbol.toUpperCase(),
+        const symbol = normalizeTicker(r.symbol);
+        map.set(symbol, {
+          ticker: symbol,
           price: r.error ? null : (r.regularMarketPrice ?? null),
           changePercent: r.regularMarketChangePercent ?? null,
           currency: r.currency,
           error: r.error ? (r.message || "Ticker não encontrado") : undefined,
         });
       }
-      return tickers.map((t) => map.get(t) || { ticker: t, price: null, error: "Sem retorno da API" });
+      return tickers.map((t) => map.get(normalizeTicker(t)) || { ticker: t, price: null, error: "Sem retorno da API" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido";
       return tickers.map((t) => ({ ticker: t, price: null, error: msg }));
