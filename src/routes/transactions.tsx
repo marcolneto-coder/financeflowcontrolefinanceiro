@@ -149,9 +149,14 @@ function TransactionsPage() {
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight font-display">Transações</h1>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" size="sm" onClick={() => setShowSearch((s) => !s)} className="flex-1 sm:flex-none">
+          <Button variant={hasActiveSearch ? "default" : "outline"} size="sm" onClick={() => setShowSearch((s) => !s)} className="flex-1 sm:flex-none relative">
             <SlidersHorizontal className="size-4 mr-2" />
             <span>Buscar</span>
+            {activeFilterCount > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-background/20 text-[10px] font-semibold px-1.5 min-w-[18px] h-[18px]">
+                {activeFilterCount}
+              </span>
+            )}
           </Button>
           <Button size="sm" onClick={() => { setEditTx(null); setShowForm(true); }} className="flex-1 sm:flex-none">
             <Plus className="size-4 mr-2" />
