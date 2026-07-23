@@ -425,15 +425,17 @@ function TransactionsPage() {
                     {/* Amount */}
                     <div className="text-right shrink-0 min-w-[90px] md:min-w-[110px]">
                       <p
-                        className={`text-base md:text-lg font-bold tabular-nums tracking-tight ${
+                        className={`${compact ? "text-sm md:text-base" : "text-base md:text-lg"} font-bold tabular-nums tracking-tight ${
                           isIncome ? "text-income" : "text-expense"
                         }`}
                       >
                         {isIncome ? "+" : "−"} {formatCurrency(tx.amount)}
                       </p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
-                        {isIncome ? "Receita" : "Despesa"}
-                      </p>
+                      {!compact && (
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                          {isIncome ? "Receita" : "Despesa"}
+                        </p>
+                      )}
                     </div>
 
                     {/* Actions */}
