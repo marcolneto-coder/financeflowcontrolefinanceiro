@@ -45,6 +45,9 @@ function SettingsPage() {
   const [tab, setTab] = useState<"appearance" | "categories" | "tags" | "security" | "backup">("appearance");
   const [importStatus, setImportStatus] = useState<string>("");
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
+  const [customAccent, setCustomAccent] = useState<string>(
+    state.accentColor?.startsWith("#") ? state.accentColor : "#3b82f6"
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
