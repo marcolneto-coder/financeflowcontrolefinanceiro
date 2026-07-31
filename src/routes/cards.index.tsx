@@ -270,7 +270,25 @@ function CardFormDialog({
                 />
               ))}
             </div>
+            <div className="mt-3 flex items-center gap-3">
+              <label className="text-xs font-medium text-muted-foreground">Cor personalizada</label>
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="size-8 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                aria-label="Escolher cor personalizada do cartão"
+              />
+              <input
+                type="text"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                placeholder="#3b82f6"
+                className="w-28 px-3 py-2 rounded-lg bg-input border-0 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
           </div>
+
         </div>
 
         <div className="flex gap-3 mt-6">
