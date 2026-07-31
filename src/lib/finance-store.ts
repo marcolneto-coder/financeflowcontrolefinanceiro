@@ -151,20 +151,36 @@ export function setStoredFontSize(size: number) {
   applyFontSize(size);
 }
 
+const accentFrom = (value: string) => ({ primary: value, ring: value, sidebarPrimary: value });
+
 export const ACCENT_COLORS: Record<string, { primary: string; ring: string; sidebarPrimary: string }> = {
-  blue: { primary: "oklch(0.7 0.12 220)", ring: "oklch(0.7 0.12 220)", sidebarPrimary: "oklch(0.7 0.12 220)" },
-  violet: { primary: "oklch(0.65 0.15 300)", ring: "oklch(0.65 0.15 300)", sidebarPrimary: "oklch(0.65 0.15 300)" },
-  pink: { primary: "oklch(0.65 0.18 350)", ring: "oklch(0.65 0.18 350)", sidebarPrimary: "oklch(0.65 0.18 350)" },
-  emerald: { primary: "oklch(0.65 0.17 155)", ring: "oklch(0.65 0.17 155)", sidebarPrimary: "oklch(0.65 0.17 155)" },
-  amber: { primary: "oklch(0.75 0.15 80)", ring: "oklch(0.75 0.15 80)", sidebarPrimary: "oklch(0.75 0.15 80)" },
-  cyan: { primary: "oklch(0.7 0.12 195)", ring: "oklch(0.7 0.12 195)", sidebarPrimary: "oklch(0.7 0.12 195)" },
-  red: { primary: "oklch(0.6 0.2 25)", ring: "oklch(0.6 0.2 25)", sidebarPrimary: "oklch(0.6 0.2 25)" },
-  indigo: { primary: "oklch(0.6 0.15 270)", ring: "oklch(0.6 0.15 270)", sidebarPrimary: "oklch(0.6 0.15 270)" },
+  blue: accentFrom("oklch(0.7 0.12 220)"),
+  sky: accentFrom("oklch(0.74 0.13 235)"),
+  cyan: accentFrom("oklch(0.7 0.12 195)"),
+  teal: accentFrom("oklch(0.68 0.12 180)"),
+  emerald: accentFrom("oklch(0.65 0.17 155)"),
+  green: accentFrom("oklch(0.7 0.18 145)"),
+  lime: accentFrom("oklch(0.78 0.18 125)"),
+  amber: accentFrom("oklch(0.75 0.15 80)"),
+  gold: accentFrom("oklch(0.78 0.13 90)"),
+  orange: accentFrom("oklch(0.7 0.18 55)"),
+  red: accentFrom("oklch(0.6 0.2 25)"),
+  rose: accentFrom("oklch(0.65 0.19 15)"),
+  pink: accentFrom("oklch(0.65 0.18 350)"),
+  fuchsia: accentFrom("oklch(0.66 0.2 325)"),
+  violet: accentFrom("oklch(0.65 0.15 300)"),
+  purple: accentFrom("oklch(0.6 0.18 305)"),
+  indigo: accentFrom("oklch(0.6 0.15 270)"),
+  slate: accentFrom("oklch(0.65 0.03 250)"),
+  bronze: accentFrom("oklch(0.62 0.09 55)"),
+  mint: accentFrom("oklch(0.8 0.11 165)"),
 };
 
+/** Accepts a preset key (e.g. "blue") or a custom hex value (e.g. "#ff8800"). */
 export function applyAccentColor(color: string) {
-  const accent = ACCENT_COLORS[color];
-  if (!accent || typeof document === "undefined") return;
+  if (typeof document === "undefined") return;
+  const accent = color?.startsWith("#") ? accentFrom(color) : ACCENT_COLORS[color];
+  if (!accent) return;
   const root = document.documentElement;
   root.style.setProperty("--primary", accent.primary);
   root.style.setProperty("--ring", accent.ring);

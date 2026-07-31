@@ -19,9 +19,13 @@ export const Route = createFileRoute("/cards/")({
 });
 
 const CARD_COLORS = [
-  "#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981",
-  "#ef4444", "#06b6d4", "#6366f1", "#1e293b", "#78716c",
+  "#3b82f6", "#0ea5e9", "#06b6d4", "#14b8a6", "#10b981",
+  "#22c55e", "#84cc16", "#eab308", "#f59e0b", "#f97316",
+  "#ef4444", "#f43f5e", "#ec4899", "#d946ef", "#a855f7",
+  "#8b5cf6", "#6366f1", "#1e293b", "#475569", "#78716c",
+  "#0f172a", "#7c2d12", "#134e4a", "#4c1d95", "#b45309",
 ];
+
 
 function CardsPage() {
   const { state, addCreditCard, updateCreditCard, deleteCreditCard } = useFinance();
