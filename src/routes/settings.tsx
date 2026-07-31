@@ -141,8 +141,8 @@ function SettingsPage() {
               <Palette className="size-4 text-muted-foreground" />
               <h2 className="text-base md:text-lg font-medium">Cor de destaque</h2>
             </div>
-            <div className="glass-card p-4 md:p-6">
-              <div className="grid grid-cols-4 gap-3 md:gap-4">
+            <div className="glass-card p-4 md:p-6 space-y-5">
+              <div className="grid grid-cols-4 md:grid-cols-5 gap-3 md:gap-4">
                 {ACCENT_OPTIONS.map((opt) => (
                   <button key={opt.value} onClick={() => setAccentColor(opt.value)}
                     className={`flex flex-col items-center gap-2 p-3 md:p-4 rounded-xl transition-all ${
@@ -153,7 +153,39 @@ function SettingsPage() {
                   </button>
                 ))}
               </div>
+
+              <div className="border-t border-border pt-4">
+                <p className="text-xs font-medium text-muted-foreground mb-3">Cor personalizada</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    type="color"
+                    value={customAccent}
+                    onChange={(e) => {
+                      setCustomAccent(e.target.value);
+                      setAccentColor(e.target.value);
+                    }}
+                    className="size-10 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                    aria-label="Escolher cor de destaque personalizada"
+                  />
+                  <input
+                    type="text"
+                    value={customAccent}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCustomAccent(v);
+                      if (/^#[0-9a-fA-F]{6}$/.test(v)) setAccentColor(v);
+                    }}
+                    placeholder="#3b82f6"
+                    className="w-32 px-3 py-2 rounded-lg bg-input border-0 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <Button size="sm" onClick={() => setAccentColor(customAccent)}>Aplicar</Button>
+                  {state.accentColor?.startsWith("#") && (
+                    <span className="text-xs text-muted-foreground">Em uso: {state.accentColor}</span>
+                  )}
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       )}
