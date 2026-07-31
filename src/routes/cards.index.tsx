@@ -8,7 +8,7 @@ import { CardBrandIcon, CARD_BRANDS } from "@/components/CardBrandIcon";
 import { CardProjectionReport } from "@/components/CardProjectionReport";
 
 
-export const Route = createFileRoute("/cards")({
+export const Route = createFileRoute("/cards/")({
   component: CardsPage,
   head: () => ({
     meta: [
@@ -277,5 +277,5 @@ function CardFormDialog({
         </div>
       </div>
     </div>
-  );
+  )
 }
