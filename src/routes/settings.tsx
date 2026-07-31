@@ -18,14 +18,27 @@ export const Route = createFileRoute("/settings")({
 
 const ACCENT_OPTIONS = [
   { name: "Azul", value: "blue", color: "#3b82f6" },
-  { name: "Violeta", value: "violet", color: "#8b5cf6" },
-  { name: "Rosa", value: "pink", color: "#ec4899" },
-  { name: "Esmeralda", value: "emerald", color: "#10b981" },
-  { name: "Âmbar", value: "amber", color: "#f59e0b" },
+  { name: "Céu", value: "sky", color: "#0ea5e9" },
   { name: "Ciano", value: "cyan", color: "#06b6d4" },
+  { name: "Turquesa", value: "teal", color: "#14b8a6" },
+  { name: "Esmeralda", value: "emerald", color: "#10b981" },
+  { name: "Verde", value: "green", color: "#22c55e" },
+  { name: "Lima", value: "lime", color: "#84cc16" },
+  { name: "Menta", value: "mint", color: "#5eead4" },
+  { name: "Âmbar", value: "amber", color: "#f59e0b" },
+  { name: "Dourado", value: "gold", color: "#d4a017" },
+  { name: "Bronze", value: "bronze", color: "#a16207" },
+  { name: "Laranja", value: "orange", color: "#f97316" },
   { name: "Vermelho", value: "red", color: "#ef4444" },
+  { name: "Rosé", value: "rose", color: "#f43f5e" },
+  { name: "Rosa", value: "pink", color: "#ec4899" },
+  { name: "Fúcsia", value: "fuchsia", color: "#d946ef" },
+  { name: "Roxo", value: "purple", color: "#a855f7" },
+  { name: "Violeta", value: "violet", color: "#8b5cf6" },
   { name: "Índigo", value: "indigo", color: "#6366f1" },
+  { name: "Grafite", value: "slate", color: "#94a3b8" },
 ];
+
 
 function SettingsPage() {
   const { state, setAccentColor, deleteCategory, exportBackup, importBackup, addTag, updateTag, deleteTag } = useFinance();
