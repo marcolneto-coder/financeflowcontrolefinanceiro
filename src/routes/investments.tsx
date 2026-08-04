@@ -161,8 +161,13 @@ function InvestmentsPage() {
       if (!g.has(inst)) g.set(inst, []);
       g.get(inst)!.push(it);
     }
-    return Array.from(g.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [items]);
+    return Array.from(g.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([inst, list]) => {
+        const sort = instSorts[inst] || { key: "name", dir: "asc" };
+        return [inst, sortInvestments(list, sort)] as const;
+      });
+  }, [items, instSorts]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir este investimento?")) return;
