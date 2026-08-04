@@ -275,13 +275,40 @@ function InvestmentsPage() {
             const instTotal = list.reduce((s, i) => s + computeCurrentValue(i), 0);
             return (
               <div key={inst} className="glass-card overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-sidebar-accent/30">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="size-4 text-muted-foreground" />
-                    <h3 className="font-medium text-sm">{inst}</h3>
-                    <span className="text-[11px] text-muted-foreground">({list.length})</span>
+                <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-sidebar-accent/30 gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Building2 className="size-4 text-muted-foreground shrink-0" />
+                    <h3 className="font-medium text-sm truncate">{inst}</h3>
+                    <span className="text-[11px] text-muted-foreground shrink-0">({list.length})</span>
                   </div>
-                  <span className="font-display text-sm font-semibold tabular-nums">{formatCurrency(instTotal)}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="hidden sm:flex items-center gap-1.5">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Ordenar</label>
+                      <select
+                        value={(instSorts[inst] || { key: "name" }).key}
+                        onChange={(e) => {
+                          const key = e.target.value as SortKey;
+                          setInstSorts((s) => ({ ...s, [inst]: { key, dir: s[inst]?.dir || "asc" } }));
+                        }}
+                        className="h-7 px-2 rounded-md bg-background border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="type">Tipo</option>
+                        <option value="name">Nome</option>
+                        <option value="value">Valor</option>
+                      </select>
+                      <button
+                        onClick={() => {
+                          const current = instSorts[inst] || { key: "name", dir: "asc" };
+                          setInstSorts((s) => ({ ...s, [inst]: { key: current.key, dir: current.dir === "asc" ? "desc" : "asc" } }));
+                        }}
+                        className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-muted text-muted-foreground"
+                        title="Inverter ordem"
+                      >
+                        {(instSorts[inst]?.dir || "asc") === "asc" ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />}
+                      </button>
+                    </div>
+                    <span className="font-display text-sm font-semibold tabular-nums">{formatCurrency(instTotal)}</span>
+                  </div>
                 </div>
                 <div className="divide-y divide-border">
                   {list.map((inv) => {
