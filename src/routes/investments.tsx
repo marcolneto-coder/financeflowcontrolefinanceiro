@@ -12,7 +12,7 @@ import {
   computeCurrentValue,
 } from "@/lib/investments-store";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, PiggyBank, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, PiggyBank, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { fetchQuotes } from "@/lib/quotes.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -54,6 +54,23 @@ function mapRow(r: Row): Investment {
   };
 }
 
+type SortKey = "type" | "name" | "value";
+type SortDir = "asc" | "desc";
+
+function sortInvestments(list: Investment[], sort: { key: SortKey; dir: SortDir }): Investment[] {
+  return [...list].sort((a, b) => {
+    let cmp = 0;
+    if (sort.key === "name") {
+      cmp = a.name.localeCompare(b.name);
+    } else if (sort.key === "type") {
+      cmp = a.type.localeCompare(b.type) || a.name.localeCompare(b.name);
+    } else if (sort.key === "value") {
+      cmp = computeCurrentValue(a) - computeCurrentValue(b);
+    }
+    return sort.dir === "asc" ? cmp : -cmp;
+  });
+}
+
 function InvestmentsPage() {
   const { user } = useAuth();
   const [items, setItems] = useState<Investment[]>([]);
@@ -61,6 +78,7 @@ function InvestmentsPage() {
   const [editing, setEditing] = useState<Investment | null>(null);
   const [creating, setCreating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [instSorts, setInstSorts] = useState<Record<string, { key: SortKey; dir: SortDir }>>({});
   
   const refreshQuotesFn = useServerFn(fetchQuotes);
 
@@ -143,8 +161,13 @@ function InvestmentsPage() {
       if (!g.has(inst)) g.set(inst, []);
       g.get(inst)!.push(it);
     }
-    return Array.from(g.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [items]);
+    return Array.from(g.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([inst, list]) => {
+        const sort = instSorts[inst] || { key: "name", dir: "asc" };
+        return [inst, sortInvestments(list, sort)] as const;
+      });
+  }, [items, instSorts]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir este investimento?")) return;
@@ -252,13 +275,40 @@ function InvestmentsPage() {
             const instTotal = list.reduce((s, i) => s + computeCurrentValue(i), 0);
             return (
               <div key={inst} className="glass-card overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-sidebar-accent/30">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="size-4 text-muted-foreground" />
-                    <h3 className="font-medium text-sm">{inst}</h3>
-                    <span className="text-[11px] text-muted-foreground">({list.length})</span>
+                <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-sidebar-accent/30 gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Building2 className="size-4 text-muted-foreground shrink-0" />
+                    <h3 className="font-medium text-sm truncate">{inst}</h3>
+                    <span className="text-[11px] text-muted-foreground shrink-0">({list.length})</span>
                   </div>
-                  <span className="font-display text-sm font-semibold tabular-nums">{formatCurrency(instTotal)}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="hidden sm:flex items-center gap-1.5">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Ordenar</label>
+                      <select
+                        value={(instSorts[inst] || { key: "name" }).key}
+                        onChange={(e) => {
+                          const key = e.target.value as SortKey;
+                          setInstSorts((s) => ({ ...s, [inst]: { key, dir: s[inst]?.dir || "asc" } }));
+                        }}
+                        className="h-7 px-2 rounded-md bg-background border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="type">Tipo</option>
+                        <option value="name">Nome</option>
+                        <option value="value">Valor</option>
+                      </select>
+                      <button
+                        onClick={() => {
+                          const current = instSorts[inst] || { key: "name", dir: "asc" };
+                          setInstSorts((s) => ({ ...s, [inst]: { key: current.key, dir: current.dir === "asc" ? "desc" : "asc" } }));
+                        }}
+                        className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background hover:bg-muted text-muted-foreground"
+                        title="Inverter ordem"
+                      >
+                        {(instSorts[inst]?.dir || "asc") === "asc" ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />}
+                      </button>
+                    </div>
+                    <span className="font-display text-sm font-semibold tabular-nums">{formatCurrency(instTotal)}</span>
+                  </div>
                 </div>
                 <div className="divide-y divide-border">
                   {list.map((inv) => {
