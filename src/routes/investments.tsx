@@ -54,6 +54,23 @@ function mapRow(r: Row): Investment {
   };
 }
 
+type SortKey = "type" | "name" | "value";
+type SortDir = "asc" | "desc";
+
+function sortInvestments(list: Investment[], sort: { key: SortKey; dir: SortDir }): Investment[] {
+  return [...list].sort((a, b) => {
+    let cmp = 0;
+    if (sort.key === "name") {
+      cmp = a.name.localeCompare(b.name);
+    } else if (sort.key === "type") {
+      cmp = a.type.localeCompare(b.type) || a.name.localeCompare(b.name);
+    } else if (sort.key === "value") {
+      cmp = computeCurrentValue(a) - computeCurrentValue(b);
+    }
+    return sort.dir === "asc" ? cmp : -cmp;
+  });
+}
+
 function InvestmentsPage() {
   const { user } = useAuth();
   const [items, setItems] = useState<Investment[]>([]);
