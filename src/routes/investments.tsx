@@ -78,6 +78,7 @@ function InvestmentsPage() {
   const [editing, setEditing] = useState<Investment | null>(null);
   const [creating, setCreating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [instSorts, setInstSorts] = useState<Record<string, { key: SortKey; dir: SortDir }>>({});
   
   const refreshQuotesFn = useServerFn(fetchQuotes);
 
