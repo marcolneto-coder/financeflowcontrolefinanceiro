@@ -127,6 +127,7 @@ function TransactionsPage() {
         if (maxValue && t.amount > parseFloat(maxValue)) return false;
         if (onlyFixed && !t.isFixed) return false;
         if (onlyFixedNoCard && (!t.isFixed || t.creditCardId)) return false;
+        if (onlyCard && !t.creditCardId) return false;
         if (onlyInstallment && !t.isInstallment) return false;
         return true;
       })
@@ -139,11 +140,11 @@ function TransactionsPage() {
         else if (sortField === "store") cmp = (a.store || "").localeCompare(b.store || "", "pt-BR", { sensitivity: "base" });
         return cmp * dir;
       });
-  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment, searchAll, hasActiveSearch, sortField, sortDir]);
+  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyCard, onlyInstallment, searchAll, hasActiveSearch, sortField, sortDir]);
 
   const clearSearch = () => {
     setQ(""); setFromDate(""); setToDate(""); setCardFilter(""); setCategoryFilter("");
-    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyFixedNoCard(false); setOnlyInstallment(false);
+    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyFixedNoCard(false); setOnlyCard(false); setOnlyInstallment(false);
   };
 
   const goMonth = (dir: number) => {
