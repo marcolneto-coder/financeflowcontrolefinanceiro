@@ -48,7 +48,7 @@ function TransactionsPage() {
   const current = getCurrentMonth();
   const [year, setYear] = useState(search.year ?? current.year);
   const [month, setMonth] = useState(search.month ?? current.month);
-  const [filter, setFilter] = useState<"all" | TransactionType>("all");
+  const [filter, setFilter] = useState<"all" | TransactionType>(search.type ?? "all");
   const [sortField, setSortField] = useState<SortField>(() => {
     if (typeof localStorage === "undefined") return "date";
     return (localStorage.getItem("tx-sort-field") as SortField) || "date";
