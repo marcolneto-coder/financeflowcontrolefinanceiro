@@ -240,31 +240,48 @@ function SummaryCard({ label, value, icon, colorClass, diff, invertColor }: {
 }
 
 
-function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff }: {
-  total: number; cardExpenses: number; nonCardExpenses: number; diff: number;
+function ExpensesBreakdownCard({ total, cardExpenses, nonCardExpenses, diff, year, month }: {
+  total: number; cardExpenses: number; nonCardExpenses: number; diff: number; year: number; month: number;
 }) {
   const isBad = diff > 0;
   const animatedTotal = useAnimatedNumber(total);
+  const navigate = useNavigate();
+  const go = (extra: { card?: boolean; fixed?: boolean }) =>
+    navigate({ to: "/transactions", search: { year, month, type: "expense" as const, ...extra } });
   return (
-    <div className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => go({})}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go({}); } }}
+      className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <div className="flex justify-between items-start mb-3 md:mb-4">
         <p className="text-xs md:text-sm text-muted-foreground">Fixas + Cartão</p>
         <div className="text-expense"><TrendingDown className="size-5" /></div>
       </div>
       <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(animatedTotal)}</p>
       <div className="mt-3 space-y-1.5 text-xs">
-        <div className="flex justify-between items-center gap-2">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); go({ card: true }); }}
+          className="w-full flex justify-between items-center gap-2 rounded-md px-1 -mx-1 py-0.5 hover:bg-accent/60 transition-colors"
+        >
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <CreditCard className="size-3" /> Cartão
           </span>
           <span className="tabular-nums font-medium">{formatCurrency(cardExpenses)}</span>
-        </div>
-        <div className="flex justify-between items-center gap-2">
+        </button>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); go({ fixed: true }); }}
+          className="w-full flex justify-between items-center gap-2 rounded-md px-1 -mx-1 py-0.5 hover:bg-accent/60 transition-colors"
+        >
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <CalendarDays className="size-3" /> Fixas
           </span>
           <span className="tabular-nums font-medium">{formatCurrency(nonCardExpenses)}</span>
-        </div>
+        </button>
       </div>
       {diff !== 0 && (
         <p className={`text-xs mt-3 flex items-center gap-1 ${isBad ? "text-expense" : "text-income"}`}>
