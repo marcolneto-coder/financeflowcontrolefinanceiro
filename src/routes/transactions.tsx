@@ -254,6 +254,10 @@ function TransactionsPage() {
               Fixas sem cartão
             </label>
             <label className="flex items-center gap-2 text-xs cursor-pointer self-end">
+              <input type="checkbox" checked={onlyCard} onChange={(e) => setOnlyCard(e.target.checked)} className="size-3.5 accent-primary" />
+              Apenas cartão
+            </label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer self-end">
               <input type="checkbox" checked={onlyInstallment} onChange={(e) => setOnlyInstallment(e.target.checked)} className="size-3.5 accent-primary" />
               Apenas parceladas
             </label>
