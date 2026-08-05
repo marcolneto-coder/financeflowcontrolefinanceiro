@@ -77,7 +77,10 @@ function TransactionsPage() {
     if (search.year !== undefined) setYear(search.year);
     if (search.month !== undefined) setMonth(search.month);
     if (search.highlight) setHighlightId(search.highlight);
-  }, [search.year, search.month, search.highlight]);
+    if (search.type) setFilter(search.type);
+    if (search.fixed) setOnlyFixedNoCard(true);
+    if (search.card) setOnlyCard(true);
+  }, [search.year, search.month, search.highlight, search.type, search.fixed, search.card]);
 
   useEffect(() => {
     if (highlightId && highlightRef.current) {
