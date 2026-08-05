@@ -138,7 +138,7 @@ function DashboardPage() {
 
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6 mb-8">
-        <Link to="/transactions" search={{ year, month, type: "income" }} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
+        <Link to="/transactions" search={{ year, month, type: "income" }} className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
           <SummaryCard label="Receitas" value={summary.income} icon={<TrendingUp className="size-5" />} colorClass="text-income" diff={pctDiff(summary.income, prevSummary.income)} />
         </Link>
         <ExpensesBreakdownCard
