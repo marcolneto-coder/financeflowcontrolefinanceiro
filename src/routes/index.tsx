@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { getMonthSummary, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, CreditCard, CalendarDays, Plus, Sparkles } from "lucide-react";
