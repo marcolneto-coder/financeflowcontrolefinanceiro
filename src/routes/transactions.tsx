@@ -99,11 +99,12 @@ function TransactionsPage() {
   const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
   const [onlyFixed, setOnlyFixed] = useState(false);
-  const [onlyFixedNoCard, setOnlyFixedNoCard] = useState(false);
+  const [onlyFixedNoCard, setOnlyFixedNoCard] = useState(search.fixed ?? false);
+  const [onlyCard, setOnlyCard] = useState(search.card ?? false);
   const [onlyInstallment, setOnlyInstallment] = useState(false);
 
-  const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyFixedNoCard || onlyInstallment;
-  const activeFilterCount = [q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment].filter(Boolean).length;
+  const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyFixedNoCard || onlyCard || onlyInstallment;
+  const activeFilterCount = [q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyCard, onlyInstallment].filter(Boolean).length;
 
   const visibleTx = useMemo(() => {
     return state.transactions
