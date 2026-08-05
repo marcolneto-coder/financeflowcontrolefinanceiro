@@ -78,8 +78,7 @@ function TransactionsPage() {
     if (search.month !== undefined) setMonth(search.month);
     if (search.highlight) setHighlightId(search.highlight);
     if (search.type) setFilter(search.type);
-    if (search.fixed) setOnlyFixedNoCard(true);
-    if (search.card) setOnlyCard(true);
+    if (search.fixed !== undefined || search.card !== undefined) { setOnlyFixedNoCard(!!search.fixed); setOnlyCard(!!search.card); }
   }, [search.year, search.month, search.highlight, search.type, search.fixed, search.card]);
 
   useEffect(() => {
