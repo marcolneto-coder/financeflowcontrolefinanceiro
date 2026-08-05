@@ -9,7 +9,14 @@ import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 type SortField = "date" | "description" | "store" | "amount";
 type SortDir = "asc" | "desc";
 
-type TxSearch = { year?: number; month?: number; highlight?: string };
+type TxSearch = {
+  year?: number;
+  month?: number;
+  highlight?: string;
+  type?: "income" | "expense";
+  fixed?: boolean;
+  card?: boolean;
+};
 
 export const Route = createFileRoute("/transactions")({
   component: TransactionsPage,
@@ -17,6 +24,9 @@ export const Route = createFileRoute("/transactions")({
     year: typeof search.year === "number" ? search.year : search.year ? Number(search.year) : undefined,
     month: typeof search.month === "number" ? search.month : search.month ? Number(search.month) : undefined,
     highlight: typeof search.highlight === "string" ? search.highlight : undefined,
+    type: search.type === "income" || search.type === "expense" ? search.type : undefined,
+    fixed: search.fixed === true || search.fixed === "true" ? true : undefined,
+    card: search.card === true || search.card === "true" ? true : undefined,
   }),
   head: () => ({
     meta: [
@@ -38,7 +48,7 @@ function TransactionsPage() {
   const current = getCurrentMonth();
   const [year, setYear] = useState(search.year ?? current.year);
   const [month, setMonth] = useState(search.month ?? current.month);
-  const [filter, setFilter] = useState<"all" | TransactionType>("all");
+  const [filter, setFilter] = useState<"all" | TransactionType>(search.type ?? "all");
   const [sortField, setSortField] = useState<SortField>(() => {
     if (typeof localStorage === "undefined") return "date";
     return (localStorage.getItem("tx-sort-field") as SortField) || "date";
@@ -67,7 +77,9 @@ function TransactionsPage() {
     if (search.year !== undefined) setYear(search.year);
     if (search.month !== undefined) setMonth(search.month);
     if (search.highlight) setHighlightId(search.highlight);
-  }, [search.year, search.month, search.highlight]);
+    if (search.type) setFilter(search.type);
+    if (search.fixed !== undefined || search.card !== undefined) { setOnlyFixedNoCard(!!search.fixed); setOnlyCard(!!search.card); }
+  }, [search.year, search.month, search.highlight, search.type, search.fixed, search.card]);
 
   useEffect(() => {
     if (highlightId && highlightRef.current) {
@@ -89,11 +101,12 @@ function TransactionsPage() {
   const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
   const [onlyFixed, setOnlyFixed] = useState(false);
-  const [onlyFixedNoCard, setOnlyFixedNoCard] = useState(false);
+  const [onlyFixedNoCard, setOnlyFixedNoCard] = useState(search.fixed ?? false);
+  const [onlyCard, setOnlyCard] = useState(search.card ?? false);
   const [onlyInstallment, setOnlyInstallment] = useState(false);
 
-  const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyFixedNoCard || onlyInstallment;
-  const activeFilterCount = [q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment].filter(Boolean).length;
+  const hasActiveSearch = q || fromDate || toDate || cardFilter || categoryFilter || minValue || maxValue || onlyFixed || onlyFixedNoCard || onlyCard || onlyInstallment;
+  const activeFilterCount = [q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyCard, onlyInstallment].filter(Boolean).length;
 
   const visibleTx = useMemo(() => {
     return state.transactions
@@ -113,6 +126,7 @@ function TransactionsPage() {
         if (maxValue && t.amount > parseFloat(maxValue)) return false;
         if (onlyFixed && !t.isFixed) return false;
         if (onlyFixedNoCard && (!t.isFixed || t.creditCardId)) return false;
+        if (onlyCard && !t.creditCardId) return false;
         if (onlyInstallment && !t.isInstallment) return false;
         return true;
       })
@@ -125,11 +139,11 @@ function TransactionsPage() {
         else if (sortField === "store") cmp = (a.store || "").localeCompare(b.store || "", "pt-BR", { sensitivity: "base" });
         return cmp * dir;
       });
-  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyInstallment, searchAll, hasActiveSearch, sortField, sortDir]);
+  }, [state.transactions, year, month, filter, q, fromDate, toDate, cardFilter, categoryFilter, minValue, maxValue, onlyFixed, onlyFixedNoCard, onlyCard, onlyInstallment, searchAll, hasActiveSearch, sortField, sortDir]);
 
   const clearSearch = () => {
     setQ(""); setFromDate(""); setToDate(""); setCardFilter(""); setCategoryFilter("");
-    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyFixedNoCard(false); setOnlyInstallment(false);
+    setMinValue(""); setMaxValue(""); setOnlyFixed(false); setOnlyFixedNoCard(false); setOnlyCard(false); setOnlyInstallment(false);
   };
 
   const goMonth = (dir: number) => {
@@ -239,6 +253,10 @@ function TransactionsPage() {
               Fixas sem cartão
             </label>
             <label className="flex items-center gap-2 text-xs cursor-pointer self-end">
+              <input type="checkbox" checked={onlyCard} onChange={(e) => setOnlyCard(e.target.checked)} className="size-3.5 accent-primary" />
+              Apenas cartão
+            </label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer self-end">
               <input type="checkbox" checked={onlyInstallment} onChange={(e) => setOnlyInstallment(e.target.checked)} className="size-3.5 accent-primary" />
               Apenas parceladas
             </label>
@@ -268,6 +286,7 @@ function TransactionsPage() {
             {categoryFilter && <FilterChip label={state.categories.find((c) => c.id === categoryFilter)?.name || "Categoria"} />}
             {onlyFixed && <FilterChip label="Fixas" />}
             {onlyFixedNoCard && <FilterChip label="Fixas s/ cartão" />}
+            {onlyCard && <FilterChip label="Cartão" />}
             {onlyInstallment && <FilterChip label="Parceladas" />}
           </div>
           <button onClick={() => setShowSearch(true)} className="text-primary hover:underline shrink-0 font-medium">
