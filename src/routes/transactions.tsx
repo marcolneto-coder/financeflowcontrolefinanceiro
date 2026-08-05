@@ -9,7 +9,14 @@ import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 type SortField = "date" | "description" | "store" | "amount";
 type SortDir = "asc" | "desc";
 
-type TxSearch = { year?: number; month?: number; highlight?: string };
+type TxSearch = {
+  year?: number;
+  month?: number;
+  highlight?: string;
+  type?: "income" | "expense";
+  fixed?: boolean;
+  card?: boolean;
+};
 
 export const Route = createFileRoute("/transactions")({
   component: TransactionsPage,
@@ -17,6 +24,9 @@ export const Route = createFileRoute("/transactions")({
     year: typeof search.year === "number" ? search.year : search.year ? Number(search.year) : undefined,
     month: typeof search.month === "number" ? search.month : search.month ? Number(search.month) : undefined,
     highlight: typeof search.highlight === "string" ? search.highlight : undefined,
+    type: search.type === "income" || search.type === "expense" ? search.type : undefined,
+    fixed: search.fixed === true || search.fixed === "true" ? true : undefined,
+    card: search.card === true || search.card === "true" ? true : undefined,
   }),
   head: () => ({
     meta: [
