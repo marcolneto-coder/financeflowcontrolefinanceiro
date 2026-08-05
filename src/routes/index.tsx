@@ -223,12 +223,13 @@ function SummaryCard({ label, value, icon, colorClass, diff, invertColor }: {
   const isGood = positiveIsGood ? (diff ?? 0) > 0 : (diff ?? 0) < 0;
   const animated = useAnimatedNumber(value);
   return (
-    <div className="glass-card p-4 md:p-6 transition-transform hover:-translate-y-0.5">
+    <div className="glass-card p-4 md:p-6 h-full flex flex-col transition-transform hover:-translate-y-0.5">
       <div className="flex justify-between items-start mb-3 md:mb-4">
         <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
         <div className={colorClass}>{icon}</div>
       </div>
       <p className="text-xl md:text-3xl font-semibold tabular-nums tracking-tight">{formatCurrency(animated)}</p>
+      <div className="flex-1" />
       {diff !== undefined && diff !== 0 && (
         <p className={`text-xs mt-2 flex items-center gap-1 ${isGood ? "text-income" : "text-expense"}`}>
           {diff > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
