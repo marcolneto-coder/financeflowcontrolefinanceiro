@@ -287,6 +287,7 @@ function TransactionsPage() {
             {categoryFilter && <FilterChip label={state.categories.find((c) => c.id === categoryFilter)?.name || "Categoria"} />}
             {onlyFixed && <FilterChip label="Fixas" />}
             {onlyFixedNoCard && <FilterChip label="Fixas s/ cartão" />}
+            {onlyCard && <FilterChip label="Cartão" />}
             {onlyInstallment && <FilterChip label="Parceladas" />}
           </div>
           <button onClick={() => setShowSearch(true)} className="text-primary hover:underline shrink-0 font-medium">
