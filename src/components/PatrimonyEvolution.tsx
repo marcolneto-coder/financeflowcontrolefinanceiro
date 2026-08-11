@@ -125,9 +125,8 @@ export function PatrimonyEvolution({ total, userId }: { total: number; userId?: 
               />
               <Tooltip
                 contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "12px" }}
-                formatter={(value: number | string, name: string) =>
-                  name === "Variação %" ? `${Number(value).toFixed(2)}%` : formatCurrency(Number(value))
-                }
+                formatter={((value: unknown, name: unknown) =>
+                  name === "Variação %" ? `${Number(value).toFixed(2)}%` : formatCurrency(Number(value))) as never}
               />
               <Bar yAxisId="left" dataKey="total" name="Patrimônio" fill="var(--primary)" radius={[4, 4, 0, 0]} />
               <Line yAxisId="right" type="monotone" dataKey="deltaPct" name="Variação %" stroke="var(--gold)" strokeWidth={2} dot={{ r: 3 }} />
