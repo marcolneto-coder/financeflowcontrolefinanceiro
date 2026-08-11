@@ -356,6 +356,10 @@ function InvestmentsPage() {
         </div>
       )}
 
+      {!loading && items.length > 0 && (
+        <PatrimonyEvolution total={totals.total} userId={user?.id} />
+      )}
+
       {(creating || editing) && (
         <InvestmentDialog
           investment={editing}
