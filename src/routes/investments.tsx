@@ -16,6 +16,7 @@ import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, Pigg
 import { fetchQuotes } from "@/lib/quotes.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { PatrimonyEvolution } from "@/components/PatrimonyEvolution";
 
 export const Route = createFileRoute("/investments")({
   component: InvestmentsPage,
