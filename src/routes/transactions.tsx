@@ -573,12 +573,83 @@ function TransactionsPage() {
         </div>
       )}
 
+      {refundTx && (
+        <RefundDialog
+          tx={refundTx}
+          onClose={() => setRefundTx(null)}
+          onConfirm={async (amount, date) => {
+            await refundTransaction(refundTx.id, amount, date);
+            setRefundTx(null);
+          }}
+        />
+      )}
+
       {showForm && (
         <TransactionFormDialog
           editTransaction={editTx}
           onClose={() => { setShowForm(false); setEditTx(null); }}
         />
       )}
+    </div>
+  );
+}
+
+function RefundDialog({ tx, onClose, onConfirm }: { tx: Transaction; onClose: () => void; onConfirm: (amount: number, date: string) => void }) {
+  const [amount, setAmount] = useState(String(tx.amount));
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const parsed = parseFloat(amount) || 0;
+  const invalid = parsed <= 0 || parsed > tx.amount;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+      <div className="glass-card w-full max-w-md p-6 border border-border bg-card rounded-2xl shadow-2xl">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-lg font-semibold">Lançar estorno</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-accent transition-colors">
+            <XIcon className="size-4" />
+          </button>
+        </div>
+
+        <div className="rounded-xl bg-muted/50 p-3 mb-4">
+          <p className="text-sm font-medium truncate">{tx.description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Valor original: {formatCurrency(tx.amount)}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Valor do estorno</label>
+            <input
+              type="number" step="0.01" min="0" max={tx.amount} value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Use um valor menor para estorno parcial.
+            </p>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Data do estorno</label>
+            <input
+              type="date" value={date} onChange={(e) => setDate(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          {tx.creditCardId && (
+            <p className="text-xs text-muted-foreground">
+              O crédito será lançado na fatura do mês da data escolhida.
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <Button variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+          <Button onClick={() => onConfirm(parsed, date)} disabled={invalid} className="flex-1">
+            Estornar
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
