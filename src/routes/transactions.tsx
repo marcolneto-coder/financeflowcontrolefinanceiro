@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useFinance } from "@/lib/finance-context";
 import { type Transaction, type TransactionType, formatCurrency, getCurrentMonth } from "@/lib/finance-store";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, CreditCard as CreditCardIcon, Repeat, Calendar, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Copy, Search, X as XIcon, SlidersHorizontal, ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, CreditCard as CreditCardIcon, Repeat, Calendar, ChevronUp, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
 
@@ -43,7 +43,7 @@ const MONTHS = [
 ];
 
 function TransactionsPage() {
-  const { state, deleteTransaction, duplicateToNextMonth } = useFinance();
+  const { state, deleteTransaction, duplicateToNextMonth, refundTransaction } = useFinance();
   const search = Route.useSearch();
   const current = getCurrentMonth();
   const [year, setYear] = useState(search.year ?? current.year);
@@ -65,6 +65,7 @@ function TransactionsPage() {
   };
   const [showForm, setShowForm] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [refundTx, setRefundTx] = useState<Transaction | null>(null);
   const [highlightId, setHighlightId] = useState<string | undefined>(search.highlight);
   const highlightRef = useRef<HTMLLIElement | null>(null);
   const [compact, setCompact] = useState<boolean>(() => {
@@ -488,11 +489,11 @@ function TransactionsPage() {
                           isIncome ? "text-income" : "text-expense"
                         }`}
                       >
-                        {isIncome ? "+" : "−"} {formatCurrency(tx.amount)}
+                        {isIncome || tx.amount < 0 ? "+" : "−"} {formatCurrency(Math.abs(tx.amount))}
                       </p>
                       {!compact && (
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
-                          {isIncome ? "Receita" : "Despesa"}
+                          {isIncome ? "Receita" : tx.amount < 0 ? "Estorno" : "Despesa"}
                         </p>
                       )}
                     </div>
@@ -506,6 +507,15 @@ function TransactionsPage() {
                       >
                         <Copy className="size-4" />
                       </button>
+                      {!isIncome && tx.amount > 0 && (
+                        <button
+                          onClick={() => setRefundTx(tx)}
+                          title="Lançar estorno"
+                          className="p-2 rounded-xl hover:bg-accent text-muted-foreground hover:text-income transition-colors"
+                        >
+                          <RotateCcw className="size-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => { setEditTx(tx); setShowForm(true); }}
                         title="Editar"
@@ -532,6 +542,15 @@ function TransactionsPage() {
                       <Copy className="size-3.5" />
                       Duplicar
                     </button>
+                    {!isIncome && tx.amount > 0 && (
+                      <button
+                        onClick={() => setRefundTx(tx)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-accent text-muted-foreground hover:text-income transition-colors"
+                      >
+                        <RotateCcw className="size-3.5" />
+                        Estornar
+                      </button>
+                    )}
                     <button
                       onClick={() => { setEditTx(tx); setShowForm(true); }}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
