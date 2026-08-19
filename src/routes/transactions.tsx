@@ -594,11 +594,13 @@ function TransactionsPage() {
   );
 }
 
-function RefundDialog({ tx, onClose, onConfirm }: { tx: Transaction; onClose: () => void; onConfirm: (amount: number, date: string) => void }) {
+function RefundDialog({ tx, onClose, onConfirm }: { tx: Transaction; onClose: () => void; onConfirm: (amount: number, date: string, billingMonth?: string) => void }) {
   const [amount, setAmount] = useState(String(tx.amount));
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [billingMonth, setBillingMonth] = useState(tx.billingMonth || new Date().toISOString().slice(0, 7));
   const parsed = parseFloat(amount) || 0;
   const invalid = parsed <= 0 || parsed > tx.amount;
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
