@@ -31,6 +31,7 @@ interface FinanceContextType {
   deleteTransaction: (id: string) => Promise<void>;
   duplicateToNextMonth: (id: string) => Promise<void>;
   duplicateTransaction: (id: string) => Promise<void>;
+  refundTransaction: (id: string, amount: number, date: string) => Promise<void>;
   bulkDeleteTransactions: (ids: string[]) => Promise<void>;
   bulkSetCategory: (ids: string[], categoryId: string) => Promise<void>;
   bulkAddTag: (ids: string[], tagId: string) => Promise<void>;
