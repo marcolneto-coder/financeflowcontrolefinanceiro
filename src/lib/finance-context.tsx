@@ -542,7 +542,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     <FinanceContext.Provider value={{
       state, loading,
       addTransaction, addTransactionsBulk, updateTransaction, updateTransactionAndFuture,
-      deleteTransaction, duplicateToNextMonth, duplicateTransaction,
+      deleteTransaction, duplicateToNextMonth, duplicateTransaction, refundTransaction,
       bulkDeleteTransactions, bulkSetCategory, bulkAddTag, bulkRemoveTag, setTransactionTags,
       addCategory, deleteCategory,
       addTag, updateTag, deleteTag,
