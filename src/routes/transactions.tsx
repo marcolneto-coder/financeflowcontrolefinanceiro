@@ -577,10 +577,11 @@ function TransactionsPage() {
         <RefundDialog
           tx={refundTx}
           onClose={() => setRefundTx(null)}
-          onConfirm={async (amount, date) => {
-            await refundTransaction(refundTx.id, amount, date);
+          onConfirm={async (amount, date, billingMonth) => {
+            await refundTransaction(refundTx.id, amount, date, billingMonth);
             setRefundTx(null);
           }}
+
         />
       )}
 
@@ -594,11 +595,13 @@ function TransactionsPage() {
   );
 }
 
-function RefundDialog({ tx, onClose, onConfirm }: { tx: Transaction; onClose: () => void; onConfirm: (amount: number, date: string) => void }) {
+function RefundDialog({ tx, onClose, onConfirm }: { tx: Transaction; onClose: () => void; onConfirm: (amount: number, date: string, billingMonth?: string) => void }) {
   const [amount, setAmount] = useState(String(tx.amount));
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [billingMonth, setBillingMonth] = useState(tx.billingMonth || new Date().toISOString().slice(0, 7));
   const parsed = parseFloat(amount) || 0;
   const invalid = parsed <= 0 || parsed > tx.amount;
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
@@ -623,7 +626,7 @@ function RefundDialog({ tx, onClose, onConfirm }: { tx: Transaction; onClose: ()
             <input
               type="number" step="0.01" min="0" max={tx.amount} value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm tabular-nums text-right focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <p className="text-[10px] text-muted-foreground mt-1">
               Use um valor menor para estorno parcial.
@@ -637,15 +640,23 @@ function RefundDialog({ tx, onClose, onConfirm }: { tx: Transaction; onClose: ()
             />
           </div>
           {tx.creditCardId && (
-            <p className="text-xs text-muted-foreground">
-              O crédito será lançado na fatura do mês da data escolhida.
-            </p>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Fatura de lançamento (mês)</label>
+              <input
+                type="month" value={billingMonth} onChange={(e) => setBillingMonth(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg bg-input border-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                O crédito entra nesta fatura, independentemente da data do estorno.
+              </p>
+            </div>
           )}
         </div>
 
         <div className="flex gap-3 mt-6">
           <Button variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
-          <Button onClick={() => onConfirm(parsed, date)} disabled={invalid} className="flex-1">
+          <Button onClick={() => onConfirm(parsed, date, tx.creditCardId ? billingMonth : undefined)} disabled={invalid} className="flex-1">
+
             Estornar
           </Button>
         </div>

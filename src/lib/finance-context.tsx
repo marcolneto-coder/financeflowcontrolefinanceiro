@@ -31,7 +31,7 @@ interface FinanceContextType {
   deleteTransaction: (id: string) => Promise<void>;
   duplicateToNextMonth: (id: string) => Promise<void>;
   duplicateTransaction: (id: string) => Promise<void>;
-  refundTransaction: (id: string, amount: number, date: string) => Promise<void>;
+  refundTransaction: (id: string, amount: number, date: string, billingMonth?: string) => Promise<void>;
   bulkDeleteTransactions: (ids: string[]) => Promise<void>;
   bulkSetCategory: (ids: string[], categoryId: string) => Promise<void>;
   bulkAddTag: (ids: string[], tagId: string) => Promise<void>;
@@ -318,11 +318,11 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
   // Estorno: lança uma despesa negativa (crédito) vinculada à transação original,
   // preservando cartão / fatura / forma de pagamento para abater nos totais.
-  const refundTransaction: FinanceContextType["refundTransaction"] = async (id, amount, date) => {
+  const refundTransaction: FinanceContextType["refundTransaction"] = async (id, amount, date, billingMonthOverride) => {
     if (!user) return;
     const tx = state.transactions.find((t) => t.id === id);
     if (!tx || tx.type !== "expense" || amount <= 0) return;
-    const billingMonth = tx.billingMonth ? date.slice(0, 7) : undefined;
+    const billingMonth = tx.billingMonth ? (billingMonthOverride || date.slice(0, 7)) : undefined;
     const row = txToRow({
       ...tx,
       description: `Estorno — ${tx.description}`,
