@@ -577,10 +577,11 @@ function TransactionsPage() {
         <RefundDialog
           tx={refundTx}
           onClose={() => setRefundTx(null)}
-          onConfirm={async (amount, date) => {
-            await refundTransaction(refundTx.id, amount, date);
+          onConfirm={async (amount, date, billingMonth) => {
+            await refundTransaction(refundTx.id, amount, date, billingMonth);
             setRefundTx(null);
           }}
+
         />
       )}
 
