@@ -1,0 +1,1 @@
+ALTER TABLE public.investments ADD COLUMN IF NOT EXISTS book_value_per_share numeric;
