@@ -322,13 +322,18 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const tx = state.transactions.find((t) => t.id === id);
     if (!tx || tx.type !== "expense" || amount <= 0) return;
-    const billingMonth = tx.billingMonth ? (billingMonthOverride || date.slice(0, 7)) : undefined;
+    const isCard = !!tx.creditCardId;
+    const billingMonth = isCard
+      ? (billingMonthOverride || tx.billingMonth || date.slice(0, 7))
+      : undefined;
+    // Para cartão, a data de lançamento segue a fatura escolhida (mantendo o dia do estorno)
+    const effectiveDate = billingMonth ? `${billingMonth}-${date.slice(8, 10)}` : date;
     const row = txToRow({
       ...tx,
       description: `Estorno — ${tx.description}`,
       amount: -Math.abs(amount),
-      date,
-      purchaseDate: tx.purchaseDate ? date : undefined,
+      date: effectiveDate,
+      purchaseDate: isCard ? date : undefined,
       billingMonth,
       isFixed: false,
       isInstallment: false,
