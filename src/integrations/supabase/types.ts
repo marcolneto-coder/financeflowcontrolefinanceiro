@@ -107,6 +107,7 @@ export type Database = {
       investments: {
         Row: {
           avg_price: number
+          book_value_per_share: number | null
           cdi_percent: number | null
           created_at: string
           current_price: number | null
@@ -126,6 +127,7 @@ export type Database = {
         }
         Insert: {
           avg_price?: number
+          book_value_per_share?: number | null
           cdi_percent?: number | null
           created_at?: string
           current_price?: number | null
@@ -145,6 +147,7 @@ export type Database = {
         }
         Update: {
           avg_price?: number
+          book_value_per_share?: number | null
           cdi_percent?: number | null
           created_at?: string
           current_price?: number | null
