@@ -489,7 +489,7 @@ function TransactionsPage() {
                           isIncome ? "text-income" : "text-expense"
                         }`}
                       >
-                        {isIncome || tx.amount < 0 ? "+" : "−"} {formatCurrency(Math.abs(tx.amount))}
+                        <span className="inline-block w-[0.7em] text-center">{isIncome || tx.amount < 0 ? "+" : "−"}</span> {formatCurrency(Math.abs(tx.amount))}
                       </p>
                       {!compact && (
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
