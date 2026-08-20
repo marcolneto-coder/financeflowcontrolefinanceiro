@@ -407,7 +407,9 @@ function TransactionsPage() {
               const card = tx.creditCardId ? state.creditCards.find((c) => c.id === tx.creditCardId) : null;
               const isIncome = tx.type === "income";
               const isHighlighted = highlightId === tx.id;
-              const TypeIcon = isIncome ? TrendingUp : TrendingDown;
+              const isRefund = !isIncome && tx.amount < 0;
+              const isCredit = isIncome || isRefund;
+              const TypeIcon = isCredit ? TrendingUp : TrendingDown;
               return (
                 <li
                   key={tx.id}
@@ -420,14 +422,14 @@ function TransactionsPage() {
                     {/* Type indicator */}
                     <span
                       className={`absolute left-0 top-1/2 -translate-y-1/2 ${compact ? "h-6" : "h-9"} w-1 rounded-r ${
-                        isIncome ? "bg-income" : "bg-expense"
+                        isCredit ? "bg-income" : "bg-expense"
                       }`}
                     />
 
                     {/* Icon */}
                     <div
                       className={`${compact ? "size-8 rounded-lg" : "size-11 rounded-2xl"} flex items-center justify-center shrink-0 ${
-                        isIncome ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
+                        isCredit ? "bg-income/10 text-income" : "bg-expense/10 text-expense"
                       }`}
                     >
                       <TypeIcon className={compact ? "size-4" : "size-5"} />
@@ -486,7 +488,7 @@ function TransactionsPage() {
                     <div className="text-right shrink-0 min-w-[90px] md:min-w-[110px]">
                       <p
                         className={`${compact ? "text-sm md:text-base" : "text-base md:text-lg"} font-bold tabular-nums tracking-tight ${
-                          isIncome ? "text-income" : "text-expense"
+                          isCredit ? "text-income" : "text-expense"
                         }`}
                       >
                         <span className="inline-block w-[0.7em] text-center">{isIncome || tx.amount < 0 ? "+" : "−"}</span> {formatCurrency(Math.abs(tx.amount))}
@@ -499,7 +501,7 @@ function TransactionsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="hidden sm:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="hidden sm:flex w-[134px] shrink-0 items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <button
                         onClick={() => duplicateToNextMonth(tx.id)}
                         title="Duplicar para próximo mês"
