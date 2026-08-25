@@ -15,6 +15,21 @@ export interface Investment {
   initialDate?: string;
   notes?: string;
   lastUpdate?: string;
+  bookValuePerShare?: number;
+}
+
+/** P/VP = preço da cota / valor patrimonial por cota. Só faz sentido para FIIs/ações. */
+export function computePVP(inv: Investment): number | null {
+  const vp = Number(inv.bookValuePerShare) || 0;
+  if (vp <= 0) return null;
+  const price =
+    inv.currentPrice != null && inv.currentPrice > 0
+      ? Number(inv.currentPrice)
+      : inv.quantity > 0 && inv.currentValue
+        ? Number(inv.currentValue) / Number(inv.quantity)
+        : 0;
+  if (price <= 0) return null;
+  return price / vp;
 }
 
 export const INVESTMENT_TYPE_LABEL: Record<InvestmentType, string> = {
