@@ -10,6 +10,7 @@ import {
   INVESTMENT_TYPE_COLOR,
   computeCost,
   computeCurrentValue,
+  computePVP,
 } from "@/lib/investments-store";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet, Building2, PiggyBank, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
@@ -33,7 +34,7 @@ type Row = {
   quantity: number | string; avg_price: number | string; current_price: number | string | null;
   current_value: number | string | null; cdi_percent: number | string | null;
   initial_amount: number | string | null; initial_date: string | null; notes: string | null;
-  last_update: string | null;
+  last_update: string | null; book_value_per_share: number | string | null;
 };
 
 function mapRow(r: Row): Investment {
@@ -52,6 +53,7 @@ function mapRow(r: Row): Investment {
     initialDate: r.initial_date ?? undefined,
     notes: r.notes ?? undefined,
     lastUpdate: r.last_update ?? undefined,
+    bookValuePerShare: r.book_value_per_share != null ? Number(r.book_value_per_share) : undefined,
   };
 }
 
@@ -330,6 +332,16 @@ function InvestmentsPage() {
                             {inv.cdiPercent != null && ` · ${inv.cdiPercent}% CDI`}
                             {inv.quantity > 0 && ` · ${inv.quantity} cotas`}
                           </p>
+                          {(() => {
+                            const pvp = computePVP(inv);
+                            if (pvp == null) return null;
+                            const tone = pvp < 1 ? "text-income" : pvp > 1.1 ? "text-expense" : "text-muted-foreground";
+                            return (
+                              <p className={`text-[11px] tabular-nums mt-0.5 ${tone}`}>
+                                P/VP {pvp.toFixed(2)} · VP {formatCurrency(inv.bookValuePerShare || 0)}/cota
+                              </p>
+                            );
+                          })()}
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-semibold tabular-nums">{formatCurrency(cur)}</p>
@@ -389,6 +401,7 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
   const [initialAmount, setInitialAmount] = useState(String(investment?.initialAmount || ""));
   const [initialDate, setInitialDate] = useState(investment?.initialDate || new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState(investment?.notes || "");
+  const [bookValue, setBookValue] = useState(String(investment?.bookValuePerShare || ""));
   const [saving, setSaving] = useState(false);
 
   const isCdi = type === "cdi";
@@ -413,6 +426,7 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
       initial_amount: initialAmount ? Number(initialAmount) : null,
       initial_date: initialDate || null,
       notes: notes.trim() || null,
+      book_value_per_share: bookValue ? Number(bookValue) : null,
       last_update: new Date().toISOString(),
     };
     if (investment) {
@@ -493,6 +507,19 @@ function InvestmentDialog({ investment, onClose, onSaved }: {
                 <input type="number" step="0.01" value={avgPrice} onChange={(e) => setAvgPrice(e.target.value)}
                   className="w-full px-3 py-2 rounded-md bg-input border-0 text-sm tabular-nums" />
               </div>
+              {(type === "fii" || type === "acao") && (
+                <div className="col-span-2">
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    Valor patrimonial por cota — VP (R$)
+                  </label>
+                  <input type="number" step="0.01" value={bookValue} onChange={(e) => setBookValue(e.target.value)}
+                    placeholder="Ex.: 10.12"
+                    className="w-full px-3 py-2 rounded-md bg-input border-0 text-sm tabular-nums" />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Informe o VP/cota do último relatório gerencial. O P/VP é calculado automaticamente com a cotação atual.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
