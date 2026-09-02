@@ -536,7 +536,7 @@ function TransactionsPage() {
                   </div>
 
                   {/* Mobile actions row */}
-                  <div className="sm:hidden flex items-center justify-end gap-1 px-4 pb-3 -mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="sm:hidden flex items-center justify-end gap-1 px-4 pb-3 -mt-1">
                     <button
                       onClick={() => duplicateToNextMonth(tx.id)}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
