@@ -67,15 +67,26 @@ function SettingsPage() {
   const incomeCategories = state.categories.filter((c) => c.type === "income");
   const expenseCategories = state.categories.filter((c) => c.type === "expense");
 
-  const handleExport = () => {
-    const data = exportBackup();
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `finance-flow-backup-${new Date().toISOString().split("T")[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExport = async () => {
+    try {
+      setImportStatus("⏳ Gerando backup...");
+      const data = await exportBackup();
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `finance-flow-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      const counts = JSON.parse(data).counts as Record<string, number>;
+      setImportStatus(
+        `✅ Backup gerado: ${counts.transactions} transações, ${counts.categories} categorias, ${counts.credit_cards} cartões, ${counts.tags} etiquetas, ${counts.investments} investimentos.`,
+      );
+      setTimeout(() => setImportStatus(""), 6000);
+    } catch {
+      setImportStatus("❌ Não foi possível gerar o backup.");
+      setTimeout(() => setImportStatus(""), 5000);
+    }
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
