@@ -280,12 +280,13 @@ function SettingsPage() {
           <div className="glass-card p-4 md:p-6">
             <h2 className="text-base md:text-lg font-medium mb-2">Exportar Backup</h2>
             <p className="text-xs text-muted-foreground mb-4">
-              Salve todos os dados em um arquivo JSON. Você pode guardar no OneDrive, Google Drive ou onde preferir.
+              Salva <strong>todos</strong> os dados em um arquivo JSON: transações, categorias, cartões, etiquetas, vínculos de etiquetas, investimentos e histórico de patrimônio.
             </p>
             <Button onClick={handleExport}>
               <Download className="size-4" />
               Baixar backup
             </Button>
+            {importStatus && <p className="text-sm mt-3">{importStatus}</p>}
           </div>
 
           <div className="glass-card p-4 md:p-6">
