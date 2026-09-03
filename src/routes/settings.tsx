@@ -67,15 +67,26 @@ function SettingsPage() {
   const incomeCategories = state.categories.filter((c) => c.type === "income");
   const expenseCategories = state.categories.filter((c) => c.type === "expense");
 
-  const handleExport = () => {
-    const data = exportBackup();
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `finance-flow-backup-${new Date().toISOString().split("T")[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExport = async () => {
+    try {
+      setImportStatus("⏳ Gerando backup...");
+      const data = await exportBackup();
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `finance-flow-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      const counts = JSON.parse(data).counts as Record<string, number>;
+      setImportStatus(
+        `✅ Backup gerado: ${counts.transactions} transações, ${counts.categories} categorias, ${counts.credit_cards} cartões, ${counts.tags} etiquetas, ${counts.investments} investimentos.`,
+      );
+      setTimeout(() => setImportStatus(""), 6000);
+    } catch {
+      setImportStatus("❌ Não foi possível gerar o backup.");
+      setTimeout(() => setImportStatus(""), 5000);
+    }
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,12 +280,13 @@ function SettingsPage() {
           <div className="glass-card p-4 md:p-6">
             <h2 className="text-base md:text-lg font-medium mb-2">Exportar Backup</h2>
             <p className="text-xs text-muted-foreground mb-4">
-              Salve todos os dados em um arquivo JSON. Você pode guardar no OneDrive, Google Drive ou onde preferir.
+              Salva <strong>todos</strong> os dados em um arquivo JSON: transações, categorias, cartões, etiquetas, vínculos de etiquetas, investimentos e histórico de patrimônio.
             </p>
             <Button onClick={handleExport}>
               <Download className="size-4" />
               Baixar backup
             </Button>
+            {importStatus && <p className="text-sm mt-3">{importStatus}</p>}
           </div>
 
           <div className="glass-card p-4 md:p-6">

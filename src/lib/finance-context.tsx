@@ -46,7 +46,7 @@ interface FinanceContextType {
   updateCreditCard: (card: CreditCard) => Promise<void>;
   deleteCreditCard: (id: string) => Promise<void>;
   setAccentColor: (color: string) => Promise<void>;
-  exportBackup: () => string;
+  exportBackup: () => Promise<string>;
   importBackup: (json: string) => Promise<boolean>;
   refresh: () => Promise<void>;
 }
@@ -467,73 +467,126 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const exportBackup = () => JSON.stringify({
-    transactions: state.transactions,
-    categories: state.categories,
-    creditCards: state.creditCards,
-    tags: state.tags,
-    accentColor: state.accentColor,
-    exportedAt: new Date().toISOString(),
-    version: 2,
-  }, null, 2);
+  // ---- Backup completo (v3) ----
+  // Exporta TODAS as tabelas do usuário, em linhas brutas, com paginação
+  // (o backend limita cada consulta a 1000 linhas).
+  const fetchAll = async (table: string): Promise<Record<string, unknown>[]> => {
+    const out: Record<string, unknown>[] = [];
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from(table as never)
+        .select("*")
+        .range(from, from + PAGE - 1);
+      if (error) throw error;
+      const rows = (data || []) as unknown as Record<string, unknown>[];
+      out.push(...rows);
+      if (rows.length < PAGE) break;
+    }
+    return out;
+  };
+
+  const exportBackup: FinanceContextType["exportBackup"] = async () => {
+    if (!user) throw new Error("Sem usuário autenticado");
+    const [transactions, categories, creditCards, tags, transactionTags, investments, investmentSnapshots] =
+      await Promise.all([
+        fetchAll("transactions"),
+        fetchAll("categories"),
+        fetchAll("credit_cards"),
+        fetchAll("tags"),
+        fetchAll("transaction_tags"),
+        fetchAll("investments"),
+        fetchAll("investment_snapshots"),
+      ]);
+    return JSON.stringify(
+      {
+        version: 3,
+        exportedAt: new Date().toISOString(),
+        accentColor: state.accentColor,
+        rows: {
+          categories,
+          credit_cards: creditCards,
+          tags,
+          transactions,
+          transaction_tags: transactionTags,
+          investments,
+          investment_snapshots: investmentSnapshots,
+        },
+        counts: {
+          transactions: transactions.length,
+          categories: categories.length,
+          credit_cards: creditCards.length,
+          tags: tags.length,
+          investments: investments.length,
+          investment_snapshots: investmentSnapshots.length,
+        },
+      },
+      null,
+      2,
+    );
+  };
+
+  const chunkedInsert = async (table: string, rows: Record<string, unknown>[]) => {
+    const SIZE = 400;
+    for (let i = 0; i < rows.length; i += SIZE) {
+      const { error } = await supabase.from(table as never).insert(rows.slice(i, i + SIZE) as never);
+      if (error) throw error;
+    }
+  };
 
   const importBackup: FinanceContextType["importBackup"] = async (json) => {
     if (!user) return false;
     try {
       const data = JSON.parse(json);
-      if (!data.transactions || !data.categories) return false;
-      // Wipe existing (transaction_tags cascades)
+
+      // Normaliza formatos antigos (v1/v2) para o formato bruto v3.
+      let rows: Record<string, Record<string, unknown>[]>;
+      if (data.rows) {
+        rows = data.rows;
+      } else {
+        const cats = (data.categories || []) as Category[];
+        const cards = (data.creditCards || []) as CreditCard[];
+        const tgs = (data.tags || []) as Tag[];
+        const txs = (data.transactions || []) as Transaction[];
+        rows = {
+          categories: cats.map((c) => ({ id: c.id, name: c.name, type: c.type })),
+          credit_cards: cards.map((c) => ({
+            id: c.id, name: c.name, brand: c.brand, last_digits: c.lastDigits,
+            card_limit: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color,
+          })),
+          tags: tgs.map((t) => ({ id: t.id, name: t.name, color: t.color })),
+          transactions: txs.map((t) => ({ id: t.id, ...txToRow(t, user.id) })),
+          transaction_tags: txs.flatMap((t) =>
+            (t.tagIds || []).map((tagId) => ({ transaction_id: t.id, tag_id: tagId })),
+          ),
+          investments: [],
+          investment_snapshots: [],
+        };
+      }
+
+      if (!rows.transactions && !rows.categories) return false;
+
+      const own = (list: Record<string, unknown>[] | undefined) =>
+        (list || []).map((r) => ({ ...r, user_id: user.id }));
+
+      // Limpa os dados atuais (transaction_tags é removido em cascata)
+      await supabase.from("transaction_tags").delete().eq("user_id", user.id);
       await supabase.from("transactions").delete().eq("user_id", user.id);
       await supabase.from("credit_cards").delete().eq("user_id", user.id);
       await supabase.from("categories").delete().eq("user_id", user.id);
       await supabase.from("tags").delete().eq("user_id", user.id);
-      // Insert categories first; map old id → new id
-      const catIdMap: Record<string, string> = {};
-      if (data.categories.length) {
-        const { data: insCats } = await supabase.from("categories")
-          .insert(data.categories.map((c: Category) => ({ user_id: user.id, name: c.name, type: c.type })))
-          .select("*");
-        (insCats || []).forEach((c, i) => { catIdMap[data.categories[i].id] = c.id; });
-      }
-      const cardIdMap: Record<string, string> = {};
-      if (data.creditCards?.length) {
-        const { data: insCards } = await supabase.from("credit_cards").insert(
-          data.creditCards.map((c: CreditCard) => ({
-            user_id: user.id, name: c.name, brand: c.brand, last_digits: c.lastDigits,
-            card_limit: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color,
-          }))
-        ).select("*");
-        (insCards || []).forEach((c, i) => { cardIdMap[data.creditCards[i].id] = c.id; });
-      }
-      const tagIdMap: Record<string, string> = {};
-      if (Array.isArray(data.tags) && data.tags.length) {
-        const { data: insTags } = await supabase.from("tags").insert(
-          data.tags.map((t: Tag) => ({ user_id: user.id, name: t.name, color: t.color }))
-        ).select("*");
-        (insTags || []).forEach((t, i) => { tagIdMap[data.tags[i].id] = t.id; });
-      }
-      const txIdMap: Record<string, string> = {};
-      if (data.transactions.length) {
-        const { data: insTx } = await supabase.from("transactions").insert(
-          data.transactions.map((t: Transaction) => txToRow({
-            ...t,
-            categoryId: catIdMap[t.categoryId] || "",
-            creditCardId: t.creditCardId ? cardIdMap[t.creditCardId] : undefined,
-          }, user.id))
-        ).select("id");
-        (insTx || []).forEach((t, i) => { txIdMap[data.transactions[i].id] = t.id; });
-        // Re-attach tags
-        const txTagRows: Array<{ transaction_id: string; tag_id: string; user_id: string }> = [];
-        for (const t of data.transactions as Transaction[]) {
-          const newTxId = txIdMap[t.id];
-          if (!newTxId || !t.tagIds) continue;
-          for (const oldTagId of t.tagIds) {
-            const newTagId = tagIdMap[oldTagId];
-            if (newTagId) txTagRows.push({ transaction_id: newTxId, tag_id: newTagId, user_id: user.id });
-          }
-        }
-        if (txTagRows.length) await supabase.from("transaction_tags").insert(txTagRows);
-      }
+      await supabase.from("investment_snapshots").delete().eq("user_id", user.id);
+      await supabase.from("investments").delete().eq("user_id", user.id);
+
+      // Restaura preservando os IDs originais, então nenhum vínculo se perde.
+      await chunkedInsert("categories", own(rows.categories));
+      await chunkedInsert("credit_cards", own(rows.credit_cards));
+      await chunkedInsert("tags", own(rows.tags));
+      await chunkedInsert("transactions", own(rows.transactions));
+      await chunkedInsert("transaction_tags", own(rows.transaction_tags));
+      await chunkedInsert("investments", own(rows.investments));
+      await chunkedInsert("investment_snapshots", own(rows.investment_snapshots));
+
       if (data.accentColor) await setAccentColor(data.accentColor);
       await refresh();
       return true;
@@ -542,6 +595,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       return false;
     }
   };
+
 
   return (
     <FinanceContext.Provider value={{
